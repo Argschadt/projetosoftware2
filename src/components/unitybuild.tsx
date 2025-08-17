@@ -37,11 +37,11 @@ export default function UnityBuild({
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
-    const loaderUrl = `${buildPath}/ProjetoVazio.loader.js`;
+    const loaderUrl = `${buildPath}/semcompressao.loader.js`;
     const config = {
-      dataUrl: `${buildPath}/ProjetoVazio.data.br`,
-      frameworkUrl: `${buildPath}/ProjetoVazio.framework.js.br`,
-      codeUrl: `${buildPath}/ProjetoVazio.wasm.br`,
+      dataUrl: `${buildPath}/semcompressao.data`,
+      frameworkUrl: `${buildPath}/semcompressao.framework.js`,
+      codeUrl: `${buildPath}/semcompressao.wasm`,
       streamingAssetsUrl: "StreamingAssets",
       companyName: "MyCompany",
       productName: "MyUnityApp",
