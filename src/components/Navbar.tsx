@@ -43,6 +43,15 @@ export default function Navbar() {
           Início
         </NavLink>
         <NavLink
+          to="/galeria"
+          style={({ isActive }: { isActive: boolean }) => ({
+            ...linkStyle,
+            ...(isActive ? activeStyle : {}),
+          })}
+        >
+          Galeria
+        </NavLink>
+        <NavLink
           to="/unity"
           style={({ isActive }: { isActive: boolean }) => ({
             ...linkStyle,
