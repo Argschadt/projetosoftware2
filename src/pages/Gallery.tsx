@@ -26,19 +26,102 @@ const Gallery: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [hasPrevPage, setHasPrevPage] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     fetchItems();
   }, [page]);
 
+  async function findTotalPages(): Promise<number> {
+    console.log('Finding total pages...');
+
+    // Estratégia otimizada: começar com páginas menores e aumentar
+    const testPages = [10, 25, 50, 100, 200, 500]; // Páginas para testar em ordem crescente
+    let lastValidPage = 1;
+
+    for (const testPage of testPages) {
+      try {
+        console.log(`Testing page ${testPage}...`);
+        const res = await fetch(
+          `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${testPage}`
+        );
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+          lastValidPage = testPage;
+          console.log(`Page ${testPage} has items, continuing...`);
+        } else {
+          console.log(`Page ${testPage} is empty, found boundary`);
+          break;
+        }
+      } catch (e) {
+        console.log(`Error testing page ${testPage}, using last valid page`);
+        break;
+      }
+    }
+
+    // Busca binária nas proximidades para precisão
+    let low = Math.max(1, lastValidPage - 10);
+    let high = lastValidPage + 20;
+    let finalTotalPages = lastValidPage;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      try {
+        const res = await fetch(
+          `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${mid}`
+        );
+        const data = await res.json();
+
+        if (data.items && data.items.length > 0) {
+          finalTotalPages = mid;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
+      } catch (e) {
+        high = mid - 1;
+      }
+    }
+
+    console.log(`Total pages found: ${finalTotalPages}`);
+    return finalTotalPages;
+  }
+
   async function fetchItems() {
     setLoading(true);
     try {
+      console.log(`Fetching page ${page}`);
+
       const res = await fetch(
-        `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=20&paged=${page}`
+        `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=36&paged=${page}`
       );
       const data = await res.json();
-      setTotalPages(data.total_pages || 1);
+
+      console.log(`Page ${page} response:`, {
+        itemsCount: data.items?.length || 0,
+        hasItems: !!(data.items && data.items.length > 0)
+      });
+
+      // Se não há items nesta página, significa que chegamos ao fim
+      if (!data.items || data.items.length === 0) {
+        console.log(`No items found on page ${page} - reached end of collection`);
+        if (page > 1) {
+          // Se estamos em uma página > 1 e não há items, voltamos para a página anterior
+          setPage(page - 1);
+          return;
+        }
+        setItems([]);
+        setTotalPages(1);
+        setHasNextPage(false);
+        setHasPrevPage(false);
+        setLoading(false);
+        return;
+      }
+
+      // Se chegamos aqui, há items nesta página
       const itemsWithAttachments: Item[] = await Promise.all(
         data.items.map(async (item: any) => {
           let attachments: Attachment[] = [];
@@ -47,6 +130,7 @@ const Gallery: React.FC = () => {
             const attData = await attRes.json();
             attachments = attData as Attachment[];
           } catch (e) {
+            console.warn(`Failed to fetch attachments for item ${item.id}:`, e);
             attachments = [];
           }
           return {
@@ -58,8 +142,46 @@ const Gallery: React.FC = () => {
           };
         })
       );
+
+      console.log(`Successfully loaded ${itemsWithAttachments.length} items for page ${page}`);
+
+      // Na primeira carga, descobrir o total de páginas
+      if (isInitialLoad) {
+        console.log('Initial load - finding total pages...');
+        const totalPagesFound = await findTotalPages();
+        setTotalPages(totalPagesFound);
+        setIsInitialLoad(false);
+        console.log(`✅ Set total pages to: ${totalPagesFound}`);
+      }
+
+      // Verificar se há próxima página tentando carregar a próxima
+      const nextPageRes = await fetch(
+        `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${page + 1}`
+      );
+      const nextPageData = await nextPageRes.json();
+      const hasNext = !!(nextPageData.items && nextPageData.items.length > 0);
+
       setItems(itemsWithAttachments);
+      setHasNextPage(hasNext);
+      setHasPrevPage(page > 1);
+
+      // Só estimar total de páginas se ainda não foi descoberto na carga inicial
+      if (isInitialLoad) {
+        // Na carga inicial, já descobrimos o total correto acima
+        console.log(`Initial load complete - totalPages already set to: ${totalPages}`);
+      } else {
+        // Para navegações subsequentes, manter a estimação simples mas não sobrescrever valores altos
+        const newEstimatedTotal = hasNext ? Math.max(totalPages, page + 1) : Math.max(totalPages, page);
+        if (newEstimatedTotal !== totalPages) {
+          console.log(`Updating totalPages from ${totalPages} to ${newEstimatedTotal}`);
+          setTotalPages(newEstimatedTotal);
+        }
+      }
+
+      console.log(`📄 Final state - Page: ${page}, Total: ${totalPages}, HasNext: ${hasNext}, HasPrev: ${page > 1}`);
+
     } catch (e) {
+      console.error('Error fetching items:', e);
       setItems([]);
     }
     setLoading(false);
@@ -87,13 +209,25 @@ const Gallery: React.FC = () => {
           textAlign: 'center',
           color: '#333',
           fontSize: '2.5rem',
-          marginBottom: '30px',
+          marginBottom: '10px',
           fontWeight: '300',
           textTransform: 'uppercase',
           letterSpacing: '2px'
         }}>
           Galeria de Arte Tainacan
         </h1>
+
+        {totalPages > 1 && (
+          <p style={{
+            textAlign: 'center',
+            color: '#666',
+            fontSize: '1rem',
+            marginBottom: '30px',
+            fontWeight: '400'
+          }}>
+            {isInitialLoad ? 'Analisando coleção...' : `Página ${page} de ${totalPages} • 36 imagens por página`}
+          </p>
+        )}
 
         {loading ? (
           <div style={{
@@ -116,13 +250,16 @@ const Gallery: React.FC = () => {
                 100% { transform: rotate(360deg); }
               }
             `}</style>
+            <p style={{ marginTop: '20px', color: '#666' }}>
+              {isInitialLoad ? 'Descobrindo total de páginas...' : 'Carregando imagens...'}
+            </p>
           </div>
         ) : (
           <>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '20px',
+              gridTemplateColumns: 'repeat(6, 1fr)',
+              gap: '15px',
               marginBottom: '40px'
             }}>
               {items.map((item) => {
@@ -150,7 +287,7 @@ const Gallery: React.FC = () => {
                     <div style={{
                       position: 'relative',
                       overflow: 'hidden',
-                      height: '250px'
+                      height: '180px'
                     }}>
                       <img
                         src={attachment.url}
@@ -211,17 +348,21 @@ const Gallery: React.FC = () => {
           marginTop: '40px'
         }}>
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1 || loading}
+            onClick={() => {
+              const newPage = Math.max(1, page - 1);
+              console.log(`Navigating from page ${page} to ${newPage}`);
+              setPage(newPage);
+            }}
+            disabled={!hasPrevPage || loading}
             style={{
               padding: '12px 24px',
-              background: page === 1 || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: !hasPrevPage || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '25px',
               fontSize: '1rem',
               fontWeight: '500',
-              cursor: page === 1 || loading ? 'not-allowed' : 'pointer',
+              cursor: !hasPrevPage || loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
             }}
@@ -241,17 +382,21 @@ const Gallery: React.FC = () => {
           </div>
 
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages || loading}
+            onClick={() => {
+              const newPage = page + 1;
+              console.log(`Navigating from page ${page} to ${newPage}`);
+              setPage(newPage);
+            }}
+            disabled={!hasNextPage || loading}
             style={{
               padding: '12px 24px',
-              background: page === totalPages || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: !hasNextPage || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               color: 'white',
               border: 'none',
               borderRadius: '25px',
               fontSize: '1rem',
               fontWeight: '500',
-              cursor: page === totalPages || loading ? 'not-allowed' : 'pointer',
+              cursor: !hasNextPage || loading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease',
               boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
             }}
