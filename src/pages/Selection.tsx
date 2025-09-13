@@ -205,9 +205,25 @@ const Selection: React.FC = () => {
   }
 
   function saveSelection() {
-    // For now, just log the selected items
-    console.log('Selected items:', Array.from(selectedItems));
-    alert(`Seleção salva! ${selectedItems.size} obras selecionadas.`);
+    // Pega os objetos completos das obras selecionadas
+    const selectedData = items
+      .filter(item => selectedItems.has(item.id))
+      .map(item => {
+        const imageAttachments = getImageAttachments(item);
+        return {
+          id: item.id,
+          title: item.title,
+          description: item.description,
+          // pega só a primeira imagem para simplificar
+          imageUrl: imageAttachments.length > 0 ? imageAttachments[0].url : null
+        };
+      });
+
+    // Salva no localStorage como string JSON
+    localStorage.setItem("selectedArtworks", JSON.stringify(selectedData));
+
+    console.log("Selecionados salvos no localStorage:", selectedData);
+    alert(`Seleção salva! ${selectedData.length} obras armazenadas.`);
   }
 
   function removeSelection() {

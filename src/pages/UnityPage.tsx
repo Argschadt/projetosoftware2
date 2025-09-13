@@ -35,7 +35,7 @@ export default function UnityPage() {
 
       {showUnity ? (
         <div style={{ display: "flex", justifyContent: "center" }}>
-          <UnityBuild buildPath="/unity/Build" />
+          <UnityBuild buildPath="/selecionadosArt/Build" />
         </div>
       ) : (
         <div
