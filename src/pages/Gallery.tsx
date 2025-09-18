@@ -1,21 +1,11 @@
-import React, { useEffect, useState } from "react";
-
-type Attachment = {
-  id: number;
-  title: string;
-  description: string;
-  mime_type: string;
-  url: string;
-  media_type: string;
-  alt_text?: string;
-};
+﻿import React, { useEffect, useState } from "react";
+import ImageCard from "../components/ImageCard";
 
 type Item = {
   id: number;
   title: string;
   description: string;
   _thumbnail_id?: string;
-  attachments: Attachment[];
 };
 
 const COLLECTION_ID = 2174;
@@ -63,11 +53,9 @@ const Gallery: React.FC = () => {
         hasItems: !!(data.items && data.items.length > 0)
       });
 
-      // Se não há items nesta página, significa que chegamos ao fim
       if (!data.items || data.items.length === 0) {
         console.log(`No items found on page ${page} - reached end of collection`);
         if (page > 1) {
-          // Se estamos em uma página > 1 e não há items, voltamos para a página anterior
           setPage(page - 1);
           return;
         }
@@ -79,31 +67,15 @@ const Gallery: React.FC = () => {
         return;
       }
 
-      // Se chegamos aqui, há items nesta página
-      const itemsWithAttachments: Item[] = await Promise.all(
-        data.items.map(async (item: any) => {
-          let attachments: Attachment[] = [];
-          try {
-            const attRes = await fetch(`${API_BASE}/items/${item.id}/attachments`);
-            const attData = await attRes.json();
-            attachments = attData as Attachment[];
-          } catch (e) {
-            console.warn(`Failed to fetch attachments for item ${item.id}:`, e);
-            attachments = [];
-          }
-          return {
-            id: item.id,
-            title: item.title,
-            description: item.description,
-            _thumbnail_id: item._thumbnail_id,
-            attachments,
-          };
-        })
-      );
+      const newItems: Item[] = data.items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        _thumbnail_id: item._thumbnail_id,
+      }));
 
-      console.log(`Successfully loaded ${itemsWithAttachments.length} items for page ${page}`);
+      console.log(`Successfully loaded ${newItems.length} item stubs for page ${page}`);
 
-      // Na primeira carga, descobrir o total de páginas
       if (isInitialLoad) {
         console.log('Initial load - finding total pages...');
         const totalPagesFound = await findTotalPages();
@@ -112,23 +84,17 @@ const Gallery: React.FC = () => {
         console.log(`✅ Set total pages to: ${totalPagesFound}`);
       }
 
-      // Verificar se há próxima página tentando carregar a próxima
       const nextPageRes = await fetch(
         `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${page + 1}`
       );
       const nextPageData = await nextPageRes.json();
       const hasNext = !!(nextPageData.items && nextPageData.items.length > 0);
 
-      setItems(itemsWithAttachments);
+      setItems(newItems);
       setHasNextPage(hasNext);
       setHasPrevPage(page > 1);
 
-      // Só estimar total de páginas se ainda não foi descoberto na carga inicial
-      if (isInitialLoad) {
-        // Na carga inicial, já descobrimos o total correto acima
-        console.log(`Initial load complete - totalPages already set to: ${totalPages}`);
-      } else {
-        // Para navegações subsequentes, manter a estimação simples mas não sobrescrever valores altos
+      if (!isInitialLoad) {
         const newEstimatedTotal = hasNext ? Math.max(totalPages, page + 1) : Math.max(totalPages, page);
         if (newEstimatedTotal !== totalPages) {
           console.log(`Updating totalPages from ${totalPages} to ${newEstimatedTotal}`);
@@ -143,10 +109,6 @@ const Gallery: React.FC = () => {
       setItems([]);
     }
     setLoading(false);
-  }
-
-  function getImageAttachments(item: Item): Attachment[] {
-    return item.attachments.filter(att => att.media_type === "image" && att.url);
   }
 
   return (
@@ -209,7 +171,7 @@ const Gallery: React.FC = () => {
               }
             `}</style>
             <p style={{ marginTop: '20px', color: '#666' }}>
-              {isInitialLoad ? 'Descobrindo total de páginas...' : 'Carregando imagens...'}
+              {isInitialLoad ? 'Descobrindo total de páginas...' : 'Carregando itens...'}
             </p>
           </div>
         ) : (
@@ -220,67 +182,9 @@ const Gallery: React.FC = () => {
               gap: '15px',
               marginBottom: '40px'
             }}>
-              {items.map((item) => {
-                const imageAttachments = getImageAttachments(item);
-                return imageAttachments.map((attachment) => (
-                  <div
-                    key={`${item.id}-${attachment.id}`}
-                    style={{
-                      background: 'white',
-                      borderRadius: '15px',
-                      overflow: 'hidden',
-                      boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                      cursor: 'pointer'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-5px)';
-                      e.currentTarget.style.boxShadow = '0 15px 35px rgba(0,0,0,0.2)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
-                    }}
-                  >
-                    <div style={{
-                      position: 'relative',
-                      overflow: 'hidden',
-                      height: '180px'
-                    }}>
-                      <img
-                        src={attachment.url}
-                        alt={attachment.alt_text || attachment.title || 'Imagem da galeria'}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.3s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'scale(1)';
-                        }}
-                      />
-                    </div>
-                    <div style={{ padding: '15px' }}>
-                      <h3 style={{
-                        margin: '0',
-                        fontSize: '1.1rem',
-                        fontWeight: '600',
-                        color: '#333',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        textAlign: 'center'
-                      }}>
-                        {item.title || `Imagem ${item.id}`}
-                      </h3>
-                    </div>
-                  </div>
-                ));
-              })}
+              {items.map((item) => (
+                <ImageCard key={item.id} item={item} />
+              ))}
             </div>
 
             {items.length === 0 && (
