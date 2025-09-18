@@ -35,59 +35,17 @@ const Gallery: React.FC = () => {
   }, [page]);
 
   async function findTotalPages(): Promise<number> {
-    console.log('Finding total pages...');
-
-    // Estratégia otimizada: começar com páginas menores e aumentar
-    const testPages = [10, 25, 50, 100, 200, 500]; // Páginas para testar em ordem crescente
-    let lastValidPage = 1;
-
-    for (const testPage of testPages) {
-      try {
-        console.log(`Testing page ${testPage}...`);
-        const res = await fetch(
-          `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${testPage}`
-        );
-        const data = await res.json();
-
-        if (data.items && data.items.length > 0) {
-          lastValidPage = testPage;
-          console.log(`Page ${testPage} has items, continuing...`);
-        } else {
-          console.log(`Page ${testPage} is empty, found boundary`);
-          break;
-        }
-      } catch (e) {
-        console.log(`Error testing page ${testPage}, using last valid page`);
-        break;
-      }
+    try {
+      const res = await fetch(`${API_BASE}/collections/${COLLECTION_ID}`);
+      const data = await res.json();
+      const totalItems = parseInt(data.total_items?.publish || "0", 10);
+      const perPage = 36;
+      const totalPages = Math.ceil(totalItems / perPage);
+      return totalPages;
+    } catch (e) {
+      console.error('Error fetching total items from collection:', e);
+      return 1;
     }
-
-    // Busca binária nas proximidades para precisão
-    let low = Math.max(1, lastValidPage - 10);
-    let high = lastValidPage + 20;
-    let finalTotalPages = lastValidPage;
-
-    while (low <= high) {
-      const mid = Math.floor((low + high) / 2);
-      try {
-        const res = await fetch(
-          `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${mid}`
-        );
-        const data = await res.json();
-
-        if (data.items && data.items.length > 0) {
-          finalTotalPages = mid;
-          low = mid + 1;
-        } else {
-          high = mid - 1;
-        }
-      } catch (e) {
-        high = mid - 1;
-      }
-    }
-
-    console.log(`Total pages found: ${finalTotalPages}`);
-    return finalTotalPages;
   }
 
   async function fetchItems() {
