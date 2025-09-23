@@ -26,6 +26,28 @@
   letter-spacing: 2px;
 }
 
+.filters {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-input, .filter-select {
+  padding: 10px;
+  border: 1px solid var(--ufsm-gray);
+  border-radius: 5px;
+  font-size: 1rem;
+  background: var(--ufsm-white);
+  color: var(--ufsm-dark-gray);
+}
+
+.filter-input:focus, .filter-select:focus {
+  outline: none;
+  border-color: var(--ufsm-blue);
+}
+
 .gallery-info {
   text-align: center;
   color: var(--ufsm-dark-gray);

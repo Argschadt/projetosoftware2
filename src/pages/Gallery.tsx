@@ -7,10 +7,13 @@ type Item = {
   title: string;
   description: string;
   _thumbnail_id?: string;
+  imageUrl?: string;
+  author?: string;
+  date?: string;
+  type?: string;
 };
 
 const COLLECTION_ID = 2174;
-const API_BASE = "https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan/v2";
 
 const Gallery: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -19,97 +22,134 @@ const Gallery: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [hasNextPage, setHasNextPage] = useState(true);
   const [hasPrevPage, setHasPrevPage] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [authorFilter, setAuthorFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+
+  const filteredItems = items.filter(item => {
+    const searchTerm = authorFilter.toLowerCase(); // Usando o campo de autor como busca geral
+    const matchesSearch = !searchTerm || 
+      item.title.toLowerCase().includes(searchTerm) || 
+      item.description.toLowerCase().includes(searchTerm) ||
+      (item.author && item.author.toLowerCase().includes(searchTerm));
+    
+    const matchesDate = !dateFilter || 
+      item.description.toLowerCase().includes(dateFilter.toLowerCase()) ||
+      (item.date && item.date.includes(dateFilter));
+    
+    const matchesType = !typeFilter || 
+      item.description.toLowerCase().includes(typeFilter.toLowerCase()) ||
+      (item.type && item.type.toLowerCase() === typeFilter.toLowerCase());
+    
+    return matchesSearch && matchesDate && matchesType;
+  });
 
   useEffect(() => {
     fetchItems();
   }, [page]);
 
-  async function findTotalPages(): Promise<number> {
-    try {
-      const res = await fetch(`${API_BASE}/collections/${COLLECTION_ID}`);
-      const data = await res.json();
-      const totalItems = parseInt(data.total_items?.publish || "0", 10);
-      const perPage = 36;
-      const totalPages = Math.ceil(totalItems / perPage);
-      return totalPages;
-    } catch (e) {
-      console.error('Error fetching total items from collection:', e);
-      return 1;
-    }
-  }
-
   async function fetchItems() {
+    console.log('fetchItems called with page:', page);
     setLoading(true);
     try {
       console.log(`Fetching page ${page}`);
-
-      const res = await fetch(
-        `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=36&paged=${page}`
-      );
-      const data = await res.json();
-
-      console.log(`Page ${page} response:`, {
-        itemsCount: data.items?.length || 0,
-        hasItems: !!(data.items && data.items.length > 0)
+      
+      // Fetch real items from Tainacan API
+      const response = await fetch(`/api/tainacan/items?collection=${COLLECTION_ID}&page=${page}&perpage=36`);
+      console.log('API response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API Response data:', data);
+      console.log('Number of items received:', data.items?.length || 0);
+      
+      // Transform API data to our Item format
+      const transformedItems: Item[] = data.items.map((apiItem: any) => {
+        console.log('Processing item:', apiItem.id, apiItem.title);
+        
+        // Extract metadata from the API response
+        const metadata = apiItem.metadata || {};
+        
+        // Extract author from taxonomia field
+        let author = '';
+        if (metadata['taxonomia'] && metadata['taxonomia'].value) {
+          const authorData = Array.isArray(metadata['taxonomia'].value) 
+            ? metadata['taxonomia'].value[0] 
+            : metadata['taxonomia'].value;
+          author = authorData?.name || '';
+        }
+        
+        // Extract title
+        let title = apiItem.title?.rendered || apiItem.title || 'Sem Título';
+        if (metadata['titulo-6'] && metadata['titulo-6'].value) {
+          title = metadata['titulo-6'].value;
+        }
+        
+        // Extract date
+        let date = '';
+        if (metadata['data-da-obra-2'] && metadata['data-da-obra-2'].value) {
+          date = metadata['data-da-obra-2'].value;
+        }
+        
+        // Extract type from tecnica field
+        let type = '';
+        if (metadata['tecnica-3'] && metadata['tecnica-3'].value) {
+          const typeData = metadata['tecnica-3'].value;
+          type = typeData?.name || '';
+        }
+        
+        // Extract image URL from document_as_html
+        let imageUrl = '';
+        if (apiItem.document_as_html) {
+          const imgMatch = apiItem.document_as_html.match(/src="([^"]+)"/);
+          if (imgMatch) {
+            imageUrl = imgMatch[1];
+          }
+        }
+        
+        const transformedItem = {
+          id: apiItem.id,
+          title: title,
+          description: apiItem.description || '',
+          _thumbnail_id: apiItem._thumbnail_id,
+          imageUrl: imageUrl,
+          author: author,
+          date: date,
+          type: type
+        };
+        
+        console.log('Transformed item:', transformedItem);
+        return transformedItem;
       });
-
-      if (!data.items || data.items.length === 0) {
-        console.log(`No items found on page ${page} - reached end of collection`);
-        if (page > 1) {
-          setPage(page - 1);
-          return;
-        }
-        setItems([]);
-        setTotalPages(1);
-        setHasNextPage(false);
-        setHasPrevPage(false);
-        setLoading(false);
-        return;
-      }
-
-      const newItems: Item[] = data.items.map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        _thumbnail_id: item._thumbnail_id,
-      }));
-
-      console.log(`Successfully loaded ${newItems.length} item stubs for page ${page}`);
-
-      if (isInitialLoad) {
-        console.log('Initial load - finding total pages...');
-        const totalPagesFound = await findTotalPages();
-        setTotalPages(totalPagesFound);
-        setIsInitialLoad(false);
-        console.log(`✅ Set total pages to: ${totalPagesFound}`);
-      }
-
-      const nextPageRes = await fetch(
-        `${API_BASE}/collection/${COLLECTION_ID}/items?perpage=1&paged=${page + 1}`
-      );
-      const nextPageData = await nextPageRes.json();
-      const hasNext = !!(nextPageData.items && nextPageData.items.length > 0);
-
-      setItems(newItems);
-      setHasNextPage(hasNext);
+      
+      console.log('Total transformed items:', transformedItems.length);
+      
+      setItems(transformedItems);
+      
+      // Calculate pagination
+      const totalItems = data.total || data.found || 0;
+      const perPage = 36;
+      const calculatedTotalPages = Math.ceil(totalItems / perPage);
+      
+      setTotalPages(calculatedTotalPages);
+      setHasNextPage(page < calculatedTotalPages);
       setHasPrevPage(page > 1);
-
-      if (!isInitialLoad) {
-        const newEstimatedTotal = hasNext ? Math.max(totalPages, page + 1) : Math.max(totalPages, page);
-        if (newEstimatedTotal !== totalPages) {
-          console.log(`Updating totalPages from ${totalPages} to ${newEstimatedTotal}`);
-          setTotalPages(newEstimatedTotal);
-        }
-      }
-
-      console.log(`📄 Final state - Page: ${page}, Total: ${totalPages}, HasNext: ${hasNext}, HasPrev: ${page > 1}`);
+      
+      console.log(`Loaded ${transformedItems.length} items, total pages: ${calculatedTotalPages}`);
+      console.log('Setting items in state:', transformedItems);
 
     } catch (e) {
       console.error('Error fetching items:', e);
       setItems([]);
+      setTotalPages(1);
+      setHasNextPage(false);
+      setHasPrevPage(false);
     }
     setLoading(false);
+    console.log('Loading set to false');
   }
 
   return (
@@ -119,9 +159,41 @@ const Gallery: React.FC = () => {
           Galeria de Arte Tainacan
         </h1>
 
+        <div className="filters">
+          <input
+            type="text"
+            placeholder="Buscar por autor, título ou descrição"
+            value={authorFilter}
+            onChange={(e) => setAuthorFilter(e.target.value)}
+            className="filter-input"
+          />
+          <input
+            type="text"
+            placeholder="Buscar por data/ano"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="filter-input"
+          />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="">Buscar por tipo</option>
+            <option value="Desenho">Desenho</option>
+            <option value="Escultura">Escultura</option>
+            <option value="Gravura">Gravura</option>
+            <option value="Pintura">Pintura</option>
+            <option value="Fotografia">Fotografia</option>
+            <option value="Instalação">Instalação</option>
+            <option value="Vídeo">Vídeo</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+
         {totalPages > 1 && (
           <p className="gallery-info">
-            {isInitialLoad ? 'Analisando coleção...' : `Página ${page} de ${totalPages} • 36 imagens por página`}
+            Página {page} de {totalPages} • 36 imagens por página
           </p>
         )}
 
@@ -129,23 +201,23 @@ const Gallery: React.FC = () => {
           <div className="loading-container">
             <div className="spinner"></div>
             <p className="loading-text">
-              {isInitialLoad ? 'Descobrindo total de páginas...' : 'Carregando itens...'}
+              Carregando itens...
             </p>
           </div>
         ) : (
           <>
             <div className="gallery-grid">
-              {items.map((item) => (
+              {filteredItems.map((item) => (
                 <ImageCard key={item.id} item={item} />
               ))}
             </div>
 
-            {items.length === 0 && (
+            {filteredItems.length === 0 && items.length > 0 && (
               <div className="no-items">
                 <h3>
                   Nenhuma imagem encontrada
                 </h3>
-                <p>Tente recarregar a página ou navegue para outra página.</p>
+                <p>Tente ajustar os filtros ou navegue para outra página.</p>
               </div>
             )}
           </>
@@ -155,7 +227,6 @@ const Gallery: React.FC = () => {
           <button
             onClick={() => {
               const newPage = Math.max(1, page - 1);
-              console.log(`Navigating from page ${page} to ${newPage}`);
               setPage(newPage);
             }}
             disabled={!hasPrevPage || loading}
@@ -171,7 +242,6 @@ const Gallery: React.FC = () => {
           <button
             onClick={() => {
               const newPage = page + 1;
-              console.log(`Navigating from page ${page} to ${newPage}`);
               setPage(newPage);
             }}
             disabled={!hasNextPage || loading}
