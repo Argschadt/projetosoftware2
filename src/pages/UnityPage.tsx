@@ -1,5 +1,6 @@
 import { useState } from "react";
 import UnityBuild from "../components/unitybuild";
+import "./UnityPage.css";
 
 export default function UnityPage() {
   const [showUnity, setShowUnity] = useState<boolean>(() => {
@@ -24,28 +25,23 @@ export default function UnityPage() {
     });
 
   return (
-    <section style={{ padding: 24 }}>
+    <section className="unity-section">
       <h1>Visualização 3D</h1>
-      <p style={{ opacity: 0.9 }}>Ative ou oculte o visualizador Unity.</p>
-      <div style={{ margin: "16px 0" }}>
-        <button onClick={toggleUnity}>
-          {showUnity ? "Ocultar Unity" : "Mostrar Unity"}
-        </button>
+      <p className="unity-description">Ative ou oculte o visualizador Unity.</p>
+      <div className="unity-controls">
+        <div className="unity-toggle">
+          <button className="unity-button" onClick={toggleUnity}>
+            {showUnity ? "Ocultar Unity" : "Mostrar Unity"}
+          </button>
+        </div>
       </div>
 
       {showUnity ? (
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div className="unity-viewer">
           <UnityBuild buildPath="/selecionadosArt/Build" />
         </div>
       ) : (
-        <div
-          style={{
-            border: "1px dashed #555",
-            padding: 24,
-            borderRadius: 8,
-            textAlign: "center",
-          }}
-        >
+        <div className="unity-placeholder">
           Visualizador oculto.
         </div>
       )}

@@ -1,0 +1,23 @@
+.home-section {
+  padding: 24px;
+  color: var(--ufsm-dark-gray);
+}
+
+.home-title {
+  color: var(--ufsm-blue);
+  font-size: 2rem;
+  margin-bottom: 12px;
+}
+
+.home-description {
+  max-width: 800px;
+  margin: 12px auto;
+  line-height: 1.6;
+}
+
+.home-note {
+  max-width: 800px;
+  margin: 12px auto;
+  opacity: 0.9;
+  line-height: 1.6;
+}

@@ -1,71 +1,36 @@
 import { NavLink } from "react-router-dom";
+import "./Navbar.css";
 
 export default function Navbar() {
-  const linkStyle: React.CSSProperties = {
-    marginRight: 16,
-    textDecoration: "none",
-    color: "#ffffff",
-    fontWeight: 500,
-  };
-
-  const activeStyle: React.CSSProperties = {
-    textDecoration: "underline",
-    color: "#ffffff",
-  };
 
   return (
-    <nav
-      style={{
-        width: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "12px 20px",
-        borderBottom: "1px solid #3a3a3a",
-        position: "sticky",
-        top: 0,
-        background: "var(--bg, #242424)",
-        zIndex: 10,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ fontWeight: 700 }}>Acervo 3D</span>
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <span>Acervo 3D</span>
       </div>
-      <div>
+      <div className="navbar-links">
         <NavLink
           to="/"
-          style={({ isActive }: { isActive: boolean }) => ({
-            ...linkStyle,
-            ...(isActive ? activeStyle : {}),
-          })}
+          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
           end
         >
           Início
         </NavLink>
         <NavLink
           to="/galeria"
-          style={({ isActive }: { isActive: boolean }) => ({
-            ...linkStyle,
-            ...(isActive ? activeStyle : {}),
-          })}
+          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
         >
           Galeria
         </NavLink>
         <NavLink
           to="/selecao"
-          style={({ isActive }: { isActive: boolean }) => ({
-            ...linkStyle,
-            ...(isActive ? activeStyle : {}),
-          })}
+          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
         >
           Seleção de Obras
         </NavLink>
         <NavLink
           to="/unity"
-          style={({ isActive }: { isActive: boolean }) => ({
-            ...linkStyle,
-            ...(isActive ? activeStyle : {}),
-          })}
+          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
         >
           Visualização 3D
         </NavLink>

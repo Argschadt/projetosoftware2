@@ -1,0 +1,35 @@
+.navbar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--ufsm-gray);
+  position: sticky;
+  top: 0;
+  background: var(--ufsm-blue);
+  z-index: 10;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  color: var(--ufsm-white);
+}
+
+.navbar-links {
+  display: flex;
+}
+
+.navbar-link {
+  margin-right: 16px;
+  text-decoration: none;
+  color: var(--ufsm-white);
+  font-weight: 500;
+}
+
+.navbar-link.active {
+  text-decoration: underline;
+}

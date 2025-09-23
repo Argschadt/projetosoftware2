@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import './ImageCard.css';
 
 const API_BASE = "https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan/v2";
 
@@ -68,70 +69,23 @@ const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
   return (
     <div
       ref={cardRef}
-      style={{
-        background: 'white',
-        borderRadius: '15px',
-        overflow: 'hidden',
-        boxShadow: '0 8px 25px rgba(0,0,0,0.1)',
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-        cursor: 'pointer',
-        height: '255px', // Altura fixa para o card
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-5px)';
-        e.currentTarget.style.boxShadow = '0 15px 35px rgba(0,0,0,0.2)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.1)';
-      }}
+      className="image-card"
     >
-      <div style={{
-        position: 'relative',
-        overflow: 'hidden',
-        height: '180px',
-        backgroundColor: '#f0f0f0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div className="image-container">
         {isLoading ? (
-          <div style={{
-            width: '30px',
-            height: '30px',
-            border: '3px solid #e0e0e0',
-            borderTop: '3px solid #764ba2',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite'
-          }}></div>
+          <div className="card-spinner"></div>
         ) : mainAttachment ? (
           <img
             src={mainAttachment.url}
             alt={mainAttachment.alt_text || mainAttachment.title || 'Imagem da galeria'}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform 0.3s ease'
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+            className="card-image"
           />
         ) : (
-            <span style={{color: '#ccc', fontSize: '0.8rem'}}>Sem imagem</span>
+            <span className="no-image">Sem imagem</span>
         )}
       </div>
-      <div style={{ padding: '15px' }}>
-        <h3 style={{
-          margin: '0',
-          fontSize: '1rem',
-          fontWeight: '600',
-          color: '#333',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          textAlign: 'center'
-        }}>
+      <div className="card-content">
+        <h3 className="card-title">
           {item.title || `Item ${item.id}`}
         </h3>
       </div>

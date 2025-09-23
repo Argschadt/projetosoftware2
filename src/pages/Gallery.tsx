@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import ImageCard from "../components/ImageCard";
+import "./Gallery.css";
 
 type Item = {
   id: number;
@@ -112,88 +113,36 @@ const Gallery: React.FC = () => {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
-      <div style={{
-        maxWidth: '1200px',
-        margin: '0 auto',
-        background: 'rgba(255, 255, 255, 0.95)',
-        borderRadius: '20px',
-        padding: '30px',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-      }}>
-        <h1 style={{
-          textAlign: 'center',
-          color: '#333',
-          fontSize: '2.5rem',
-          marginBottom: '10px',
-          fontWeight: '300',
-          textTransform: 'uppercase',
-          letterSpacing: '2px'
-        }}>
+    <div className="gallery-container">
+      <div className="gallery-content">
+        <h1 className="gallery-title">
           Galeria de Arte Tainacan
         </h1>
 
         {totalPages > 1 && (
-          <p style={{
-            textAlign: 'center',
-            color: '#666',
-            fontSize: '1rem',
-            marginBottom: '30px',
-            fontWeight: '400'
-          }}>
+          <p className="gallery-info">
             {isInitialLoad ? 'Analisando coleção...' : `Página ${page} de ${totalPages} • 36 imagens por página`}
           </p>
         )}
 
         {loading ? (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '300px'
-          }}>
-            <div style={{
-              width: '50px',
-              height: '50px',
-              border: '4px solid #f3f3f3',
-              borderTop: '4px solid #667eea',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite'
-            }}></div>
-            <style>{`
-              @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-              }
-            `}</style>
-            <p style={{ marginTop: '20px', color: '#666' }}>
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p className="loading-text">
               {isInitialLoad ? 'Descobrindo total de páginas...' : 'Carregando itens...'}
             </p>
           </div>
         ) : (
           <>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(6, 1fr)',
-              gap: '15px',
-              marginBottom: '40px'
-            }}>
+            <div className="gallery-grid">
               {items.map((item) => (
                 <ImageCard key={item.id} item={item} />
               ))}
             </div>
 
             {items.length === 0 && (
-              <div style={{
-                textAlign: 'center',
-                padding: '60px 20px',
-                color: '#666'
-              }}>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>
+              <div className="no-items">
+                <h3>
                   Nenhuma imagem encontrada
                 </h3>
                 <p>Tente recarregar a página ou navegue para outra página.</p>
@@ -202,13 +151,7 @@ const Gallery: React.FC = () => {
           </>
         )}
 
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '20px',
-          marginTop: '40px'
-        }}>
+        <div className="pagination">
           <button
             onClick={() => {
               const newPage = Math.max(1, page - 1);
@@ -216,30 +159,12 @@ const Gallery: React.FC = () => {
               setPage(newPage);
             }}
             disabled={!hasPrevPage || loading}
-            style={{
-              padding: '12px 24px',
-              background: !hasPrevPage || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '25px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: !hasPrevPage || loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
-            }}
+            className="page-button"
           >
             ← Anterior
           </button>
 
-          <div style={{
-            background: 'white',
-            padding: '12px 20px',
-            borderRadius: '25px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
-            fontWeight: '500',
-            color: '#333'
-          }}>
+          <div className="page-info">
             Página {page} de {totalPages}
           </div>
 
@@ -250,18 +175,7 @@ const Gallery: React.FC = () => {
               setPage(newPage);
             }}
             disabled={!hasNextPage || loading}
-            style={{
-              padding: '12px 24px',
-              background: !hasNextPage || loading ? '#ccc' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '25px',
-              fontSize: '1rem',
-              fontWeight: '500',
-              cursor: !hasNextPage || loading ? 'not-allowed' : 'pointer',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)'
-            }}
+            className="page-button"
           >
             Próxima →
           </button>
