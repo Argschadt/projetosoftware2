@@ -7,13 +7,16 @@ const TAINACAN_API = 'https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { collection, page = 1, perpage = 36 } = req.query;
+    const { collection, page = 1, perpage = 36, search } = req.query;
     if (!collection) {
       res.status(400).json({ error: 'Missing collection id' });
       return;
     }
     // Monta a URL da API do Tainacan
-    const url = `${TAINACAN_API}?collection_id=${collection}&page=${page}&perpage=${perpage}`;
+    let url = `${TAINACAN_API}?collection_id=${collection}&page=${page}&perpage=${perpage}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search as string)}`;
+    }
     const upstream = await fetch(url);
     if (!upstream.ok) {
       res.status(upstream.status).json({ error: `Upstream error: ${upstream.statusText}` });
