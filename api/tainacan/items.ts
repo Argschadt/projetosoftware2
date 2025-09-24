@@ -22,6 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       res.status(upstream.status).json({ error: `Upstream error: ${upstream.statusText}` });
       return;
     }
+
+    // Repassar os headers de paginação para o cliente
+    res.setHeader('x-wp-total', upstream.headers.get('x-wp-total') || '0');
+    res.setHeader('x-wp-totalpages', upstream.headers.get('x-wp-totalpages') || '0');
+    res.setHeader('Access-Control-Expose-Headers', 'x-wp-total, x-wp-totalpages');
+
     const data = await upstream.json();
     // Libera CORS para o navegador aceitar
     res.setHeader('Access-Control-Allow-Origin', '*');

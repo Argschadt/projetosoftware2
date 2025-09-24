@@ -1,23 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ImageCard.css';
 
 const API_BASE = "https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan/v2";
 
-type Attachment = {
-  id: number;
-  title: string;
-  description: string;
-  mime_type: string;
-  url: string;
-  media_type: string;
-  alt_text?: string;
-};
-
 type Item = {
   id: number;
   title: string;
-  description: string;
-  _thumbnail_id?: string;
+  imageUrl?: string;
 };
 
 interface ImageCardProps {
@@ -25,63 +14,46 @@ interface ImageCardProps {
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [finalImageUrl, setFinalImageUrl] = useState<string | undefined>(item.imageUrl);
+  const [isLoading, setIsLoading] = useState<boolean>(!item.imageUrl);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          fetchAttachments();
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (cardRef.current) {
-      observer.observe(cardRef.current);
-    }
-
-    return () => {
-      if (cardRef.current) {
-        observer.unobserve(cardRef.current);
-      }
-    };
-  }, []);
-
-  const fetchAttachments = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/items/${item.id}/attachments?perpage=1`);
-      const data = await response.json();
-      const imageAttachments = data.filter((att: Attachment) => att.media_type === 'image' && att.url);
-      setAttachments(imageAttachments);
-    } catch (error) {
-      console.error(`Failed to fetch attachments for item ${item.id}`, error);
-    } finally {
+    // Se a URL já veio, usa ela.
+    if (item.imageUrl) {
+      setFinalImageUrl(item.imageUrl);
       setIsLoading(false);
+    } else {
+      // Se não, como último recurso, busca os anexos.
+      setIsLoading(true);
+      fetch(`${API_BASE}/items/${item.id}/attachments?perpage=1`)
+        .then(res => res.json())
+        .then(attachments => {
+          const imageAttachment = attachments.find((att: any) => att.media_type === 'image' && att.url);
+          if (imageAttachment) {
+            setFinalImageUrl(imageAttachment.url);
+          }
+        })
+        .catch(error => console.error(`Failed to fetch fallback attachments for item ${item.id}`, error))
+        .finally(() => setIsLoading(false));
     }
-  };
-
-  const mainAttachment = attachments.length > 0 ? attachments[0] : null;
+  }, [item.id, item.imageUrl]);
 
   return (
-    <div
-      ref={cardRef}
-      className="image-card"
-    >
+    <div className="image-card">
       <div className="image-container">
         {isLoading ? (
           <div className="card-spinner"></div>
-        ) : mainAttachment ? (
+        ) : finalImageUrl ? (
           <img
-            src={mainAttachment.url}
-            alt={mainAttachment.alt_text || mainAttachment.title || 'Imagem da galeria'}
+            src={finalImageUrl}
+            alt={item.title || `Imagem da obra ${item.id}`}
             className="card-image"
+            loading="lazy"
           />
         ) : (
-            <span className="no-image">Sem imagem</span>
+          <div className="no-image-placeholder">
+            <span className="no-image-text">Sem imagem</span>
+          </div>
         )}
       </div>
       <div className="card-content">

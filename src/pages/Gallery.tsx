@@ -33,24 +33,22 @@ const Gallery: React.FC = () => {
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
 
+  // Efeito para buscar as opções de filtro na montagem do componente
   useEffect(() => {
     fetchFilterOptions();
   }, []);
 
+  // Efeito unificado para buscar itens sempre que a página ou os filtros mudarem
   useEffect(() => {
-    // Quando um filtro muda, reseta a página e busca novamente
+    fetchItems(page);
+  }, [page, selectedAuthors, selectedDates, selectedTypes]);
+
+  // Efeito para resetar a página quando os filtros são alterados
+  useEffect(() => {
     if (page !== 1) {
       setPage(1);
-    } else {
-      // Se já estiver na página 1, o useEffect de 'page' não dispara, então chamamos manualmente
-      fetchItems(1, true);
     }
   }, [selectedAuthors, selectedDates, selectedTypes]);
-
-  useEffect(() => {
-    // Busca itens quando a página muda
-    fetchItems(page, page === 1);
-  }, [page]);
 
   const handleAuthorChange = (author: string) => {
     setSelectedAuthors(prev => 
@@ -110,7 +108,7 @@ const Gallery: React.FC = () => {
     }
   }
 
-  async function fetchItems(currentPage = 1, isNewSearch = false) {
+  async function fetchItems(currentPage: number) {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -119,7 +117,6 @@ const Gallery: React.FC = () => {
         perpage: '24',
       });
 
-      // Combina todos os filtros selecionados em um único termo de busca
       const searchTerms = [...selectedAuthors, ...selectedDates, ...selectedTypes].join(' ');
       if (searchTerms) {
         params.append('search', searchTerms);
@@ -139,19 +136,46 @@ const Gallery: React.FC = () => {
         let title = metadata['titulo-6']?.value || apiItem.title?.rendered || 'Sem Título';
         let date = metadata['data-da-obra-2']?.value || '';
         let type = metadata['tecnica-3']?.value?.name || '';
-        let imageUrl = apiItem.document_as_html?.match(/src="([^"]+)"/)?.[1] || '';
         
-        return { id: apiItem.id, title, description: apiItem.description || '', _thumbnail_id: apiItem._thumbnail_id, imageUrl, author, date, type };
+        let imageUrl = '';
+        if (apiItem.thumbnail && apiItem.thumbnail['tainacan-medium']) {
+          imageUrl = apiItem.thumbnail['tainacan-medium'];
+        } 
+        else if (apiItem.document_as_html) {
+          const match = apiItem.document_as_html.match(/src="([^"]+)"/);
+          if (match) {
+            imageUrl = match[1];
+          }
+        }
+        
+        return { 
+          id: apiItem.id, 
+          title, 
+          description: apiItem.description || '', 
+          _thumbnail_id: apiItem._thumbnail_id, 
+          imageUrl,
+          author, 
+          date, 
+          type 
+        };
       });
       
-      setItems(isNewSearch ? transformedItems : prevItems => [...prevItems, ...transformedItems]);
+      // Sempre substitui os itens com os da página atual
+      setItems(transformedItems);
       
-      const totalItems = data.total || data.found || 0;
+      // Lógica de paginação mais robusta
       const perPage = 24;
-      const calculatedTotalPages = Math.ceil(totalItems / perPage);
-      
-      setTotalPages(calculatedTotalPages);
-      setHasNextPage(currentPage < calculatedTotalPages);
+      const totalHeader = response.headers.get('x-wp-total');
+      const totalPagesHeader = response.headers.get('x-wp-totalpages');
+
+      if (totalPagesHeader) {
+        setTotalPages(parseInt(totalPagesHeader, 10));
+      } else {
+        // Se o header não vier, estima o total de páginas
+        setTotalPages(currentPage); // Mostra pelo menos a página atual
+      }
+
+      setHasNextPage(transformedItems.length === perPage);
       setHasPrevPage(currentPage > 1);
 
     } catch (e) {
