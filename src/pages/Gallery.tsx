@@ -40,7 +40,14 @@ const Gallery: React.FC = () => {
 
   // Efeito unificado para buscar itens sempre que a página ou os filtros mudarem
   useEffect(() => {
-    fetchItems(page);
+    const controller = new AbortController();
+    // Passa o signal para permitir cancelamento de requisições antigas
+    fetchItems(page, controller.signal).catch((e) => {
+      if ((e as any)?.name === 'AbortError') return; // fetch foi abortado, ignora
+      console.error('fetchItems failed:', e);
+    });
+
+    return () => controller.abort();
   }, [page, selectedAuthors, selectedDates, selectedTypes]);
 
   // Efeito para resetar a página quando os filtros são alterados
@@ -108,12 +115,15 @@ const Gallery: React.FC = () => {
     }
   }
 
-  async function fetchItems(currentPage: number) {
+  async function fetchItems(currentPage: number, signal?: AbortSignal) {
     setLoading(true);
     try {
       const params = new URLSearchParams({
         collection: COLLECTION_ID.toString(),
         page: currentPage.toString(),
+        // Muitos servidores (incluindo o proxy do Vite) esperam 'paged' como chave
+        // para paginação; enviaremos ambos para compatibilidade em dev/prod.
+        paged: currentPage.toString(),
         perpage: '24',
       });
 
@@ -122,7 +132,7 @@ const Gallery: React.FC = () => {
         params.append('search', searchTerms);
       }
       
-      const response = await fetch(`/api/tainacan/items?${params.toString()}`);
+  const response = await fetch(`/api/tainacan/items?${params.toString()}`, { signal });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -162,19 +172,21 @@ const Gallery: React.FC = () => {
       
       // Sempre substitui os itens com os da página atual
       setItems(transformedItems);
-      
+
       // Lógica de paginação mais robusta
       const perPage = 24;
       const totalPagesHeader = response.headers.get('x-wp-totalpages');
 
-      if (totalPagesHeader) {
-        setTotalPages(parseInt(totalPagesHeader, 10));
-      } else {
-        // Se o header não vier, estima o total de páginas
-        setTotalPages(currentPage); // Mostra pelo menos a página atual
-      }
+      const parsedTotalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : undefined;
+      setTotalPages(parsedTotalPages ?? currentPage);
 
-      setHasNextPage(transformedItems.length === perPage);
+      // Se tivermos o total de páginas do servidor, usa-o para decidir se há próxima página,
+      // caso contrário, usa o tamanho do resultado como heurística.
+      const hasNext = typeof parsedTotalPages === 'number'
+        ? currentPage < parsedTotalPages
+        : transformedItems.length === perPage;
+
+      setHasNextPage(hasNext);
       setHasPrevPage(currentPage > 1);
 
     } catch (e) {
@@ -233,7 +245,7 @@ const Gallery: React.FC = () => {
 
           <div className="pagination">
             <button
-              onClick={() => { if (page > 1) setPage(page - 1); }}
+              onClick={() => { setPage(prev => Math.max(1, prev - 1)); }}
               disabled={!hasPrevPage || loading}
               className="page-button"
             >
@@ -245,7 +257,7 @@ const Gallery: React.FC = () => {
             </div>
 
             <button
-              onClick={() => { if (hasNextPage) setPage(page + 1); }}
+              onClick={() => { setPage(prev => prev + 1); }}
               disabled={!hasNextPage || loading}
               className="page-button"
             >

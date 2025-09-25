@@ -20,7 +20,9 @@ async function fetchAllItems(res: VercelResponse) {
     return null;
   }
 
-  const firstPageItems = await firstPageResponse.json();
+  const firstPageJson: any = await firstPageResponse.json();
+  // O endpoint retorna um objeto com propriedade `items` contendo o array
+  const firstPageItems = Array.isArray(firstPageJson.items) ? firstPageJson.items : [];
   allItems = allItems.concat(firstPageItems);
 
   const totalPages = parseInt(firstPageResponse.headers.get('x-wp-totalpages') || '1', 10);
@@ -47,8 +49,10 @@ async function fetchAllItems(res: VercelResponse) {
   // 3. Execute all promises in parallel
   try {
     const remainingPagesResults = await Promise.all(pagePromises);
-    for (const pageItems of remainingPagesResults) {
-      allItems = allItems.concat(pageItems);
+    for (const pageJsonRaw of remainingPagesResults) {
+      const pageJson: any = pageJsonRaw;
+      const items = Array.isArray(pageJson.items) ? pageJson.items : [];
+      allItems = allItems.concat(items);
     }
   } catch (error) {
     console.error('Error fetching subsequent pages:', error);
