@@ -19,8 +19,8 @@ interface UnityBuildProps {
 
 export default function UnityBuild({
   buildPath,
-  width = 960,
-  height = 600,
+  width = 1280,
+  height = 820,
 }: UnityBuildProps) {
   const unityRef = useRef<HTMLCanvasElement>(null);
   const unityInstanceRef = useRef<any>(null);
