@@ -1,22 +1,45 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 1rem 1.25rem;
+/* Define a flex container for the entire app, allowing for a header, main content, and footer */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
+/* Ensure the main content area expands to fill available space */
+.main-content {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+/* Root element styles */
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  text-align: center;
+}
+
+/* Logo styles */
 .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
   transition: filter 300ms;
 }
+
+/* Logo hover effects */
 .logo:hover {
   filter: drop-shadow(0 0 2em var(--ufsm-blue));
 }
+
 .logo.react:hover {
   filter: drop-shadow(0 0 2em var(--ufsm-light-blue));
 }
 
+/* Keyframes for logo spinning animation */
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
@@ -26,14 +49,17 @@
   }
 }
 
+/* Apply spinning animation to the second link's logo if the user has not requested reduced motion */
 @media (prefers-reduced-motion: no-preference) {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
 }
 
+/* Card component padding */
 .card { padding: 1.25em; }
 
+/* Read the docs link color */
 .read-the-docs {
   color: #888;
 }

@@ -3,33 +3,63 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--ufsm-gray);
+  padding: 1rem 2rem;
+  background-color: var(--ufsm-blue);
+  color: var(--ufsm-white);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  background: var(--ufsm-blue);
-  z-index: 10;
+  z-index: 1000;
 }
 
 .navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: bold;
   color: var(--ufsm-white);
+}
+
+.navbar-brand span {
+  text-decoration: none;
+  color: inherit;
 }
 
 .navbar-links {
   display: flex;
+  gap: 1.5rem;
 }
 
 .navbar-link {
-  margin-right: 16px;
   text-decoration: none;
   color: var(--ufsm-white);
   font-weight: 500;
+  padding: 0.5rem 0;
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.navbar-link::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  transform: scaleX(0);
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: var(--ufsm-accent);
+  transform-origin: bottom right;
+  transition: transform 0.25s ease-out;
+}
+
+.navbar-link:hover {
+  color: var(--ufsm-accent);
+}
+
+.navbar-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: bottom left;
 }
 
 .navbar-link.active {
-  text-decoration: underline;
+  color: var(--ufsm-accent);
+  font-weight: bold;
 }
