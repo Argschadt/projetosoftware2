@@ -50,6 +50,8 @@ const Gallery: React.FC = () => {
     return () => controller.abort();
   }, [page, selectedAuthors, selectedDates, selectedTypes]);
 
+  // ...existing code...
+
   // Efeito para resetar a página quando os filtros são alterados
   useEffect(() => {
     if (page !== 1) {
@@ -213,6 +215,63 @@ const Gallery: React.FC = () => {
       />
       <div className="gallery-container">
         <div className="gallery-content">
+          {/* Top pagination controls: First, Prev, pages (current-2..current+2), Next, Last */}
+          <div className="top-pagination" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setPage(1)}
+              disabled={page === 1 || loading}
+              className="page-button"
+            >
+              Primeira
+            </button>
+
+            <button
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
+              disabled={!hasPrevPage || loading}
+              className="page-button"
+            >
+              ← Voltar
+            </button>
+
+            {/* Render pages current-2 .. current+2 */}
+            {Array.from({ length: 5 }).map((_, idx) => {
+              const pageNumber = page - 2 + idx; // idx 0 -> page-2, idx 4 -> page+2
+              if (pageNumber < 1 || pageNumber > totalPages) return null;
+              const isCurrent = pageNumber === page;
+              return (
+                <button
+                  key={pageNumber}
+                  onClick={() => setPage(pageNumber)}
+                  disabled={loading}
+                  className="page-button"
+                  style={isCurrent ? { fontWeight: '700', background: '#eee' } : undefined}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setPage(prev => prev + 1)}
+              disabled={!hasNextPage || loading}
+              className="page-button"
+            >
+              Próxima →
+            </button>
+
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages || loading}
+              className="page-button"
+            >
+              Última
+            </button>
+
+            <div style={{ marginLeft: 'auto', fontSize: 14 }}>
+              Página {page} de {totalPages}
+            </div>
+          </div>
+
           <h1 className="gallery-title">Galeria de Arte Tainacan</h1>
 
           {totalPages > 1 && (
@@ -243,26 +302,60 @@ const Gallery: React.FC = () => {
             </>
           )}
 
-          <div className="pagination">
+          {/* Bottom pagination with same layout as top */}
+          <div className="pagination" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 18, flexWrap: 'wrap' }}>
             <button
-              onClick={() => { setPage(prev => Math.max(1, prev - 1)); }}
+              onClick={() => setPage(1)}
+              disabled={page === 1 || loading}
+              className="page-button"
+            >
+              Primeira
+            </button>
+
+            <button
+              onClick={() => setPage(prev => Math.max(1, prev - 1))}
               disabled={!hasPrevPage || loading}
               className="page-button"
             >
-              ← Anterior
+              ← Voltar
             </button>
 
-            <div className="page-info">
-              Página {page} de {totalPages}
-            </div>
+            {Array.from({ length: 5 }).map((_, idx) => {
+              const pageNumber = page - 2 + idx;
+              if (pageNumber < 1 || pageNumber > totalPages) return null;
+              const isCurrent = pageNumber === page;
+              return (
+                <button
+                  key={`bottom-${pageNumber}`}
+                  onClick={() => setPage(pageNumber)}
+                  disabled={loading}
+                  className="page-button"
+                  style={isCurrent ? { fontWeight: '700', background: '#eee' } : undefined}
+                >
+                  {pageNumber}
+                </button>
+              );
+            })}
 
             <button
-              onClick={() => { setPage(prev => prev + 1); }}
+              onClick={() => setPage(prev => prev + 1)}
               disabled={!hasNextPage || loading}
               className="page-button"
             >
               Próxima →
             </button>
+
+            <button
+              onClick={() => setPage(totalPages)}
+              disabled={page === totalPages || loading}
+              className="page-button"
+            >
+              Última
+            </button>
+
+            <div style={{ marginLeft: 'auto', fontSize: 14 }}>
+              Página {page} de {totalPages}
+            </div>
           </div>
         </div>
       </div>
