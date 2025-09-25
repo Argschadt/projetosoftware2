@@ -165,7 +165,6 @@ const Gallery: React.FC = () => {
       
       // Lógica de paginação mais robusta
       const perPage = 24;
-      const totalHeader = response.headers.get('x-wp-total');
       const totalPagesHeader = response.headers.get('x-wp-totalpages');
 
       if (totalPagesHeader) {
