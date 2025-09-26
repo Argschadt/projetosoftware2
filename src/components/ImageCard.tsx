@@ -1,52 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import './ImageCard.css';
-
-const API_BASE = "https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan/v2";
-
-type Item = {
-  id: number;
-  title: string;
-  imageUrl?: string;
-};
+import { API_BASE } from '../config';
+import { Item, Attachment } from '../types';
 
 interface ImageCardProps {
   item: Item;
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
-  const [finalImageUrl, setFinalImageUrl] = useState<string | undefined>(item.imageUrl);
-  const [isLoading, setIsLoading] = useState<boolean>(!item.imageUrl);
+  const [finalImageUrl, setFinalImageUrl] = useState<string | null | undefined>(item.imageUrl ?? null);
+  const [isLoading, setIsLoading] = useState<boolean>(() => !Boolean(item.imageUrl));
 
   useEffect(() => {
-    // Se a URL já veio, usa ela.
+    let aborted = false;
+    const controller = new AbortController();
+
     if (item.imageUrl) {
       setFinalImageUrl(item.imageUrl);
       setIsLoading(false);
-    } else {
-      // Se não, como último recurso, busca os anexos.
-      setIsLoading(true);
-      fetch(`${API_BASE}/items/${item.id}/attachments?perpage=1`)
-        .then(res => res.json())
-        .then(attachments => {
-          const imageAttachment = attachments.find((att: any) => att.media_type === 'image' && att.url);
-          if (imageAttachment) {
-            setFinalImageUrl(imageAttachment.url);
-          }
-        })
-        .catch(error => console.error(`Failed to fetch fallback attachments for item ${item.id}`, error))
-        .finally(() => setIsLoading(false));
+      return;
     }
+
+    setIsLoading(true);
+    fetch(`${API_BASE}/items/${item.id}/attachments?perpage=5`, { signal: controller.signal })
+      .then(res => res.json())
+      .then((attachments: Attachment[]) => {
+        if (aborted) return;
+        const imageAttachment = attachments.find((att) => att.media_type === 'image' && att.url);
+        if (imageAttachment) {
+          setFinalImageUrl(imageAttachment.url);
+        } else {
+          setFinalImageUrl(null);
+        }
+      })
+      .catch((error) => {
+        if (error.name === 'AbortError') return;
+        console.error(`Failed to fetch fallback attachments for item ${item.id}`, error);
+      })
+      .finally(() => {
+        if (!aborted) setIsLoading(false);
+      });
+
+    return () => {
+      aborted = true;
+      controller.abort();
+    };
   }, [item.id, item.imageUrl]);
 
   return (
     <div className="image-card">
       <div className="image-container">
         {isLoading ? (
-          <div className="card-spinner"></div>
+          <div className="card-spinner" />
         ) : finalImageUrl ? (
           <img
             src={finalImageUrl}
-            alt={item.title || `Imagem da obra ${item.id}`}
+            alt={item.title ?? `Imagem da obra ${item.id}`}
             className="card-image"
             loading="lazy"
           />
@@ -57,9 +66,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
         )}
       </div>
       <div className="card-content">
-        <h3 className="card-title">
-          {item.title || `Item ${item.id}`}
-        </h3>
+        <h3 className="card-title">{item.title ?? `Item ${item.id}`}</h3>
       </div>
     </div>
   );
