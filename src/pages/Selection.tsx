@@ -1,25 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { API_BASE, DEFAULT_COLLECTION_ID } from "../config";
+import { Attachment, Item } from "../types";
 
-type Attachment = {
-  id: number;
-  title: string;
-  description: string;
-  mime_type: string;
-  url: string;
-  media_type: string;
-  alt_text?: string;
-};
-
-type Item = {
-  id: number;
-  title: string;
-  description: string;
-  _thumbnail_id?: string;
-  attachments: Attachment[];
-};
-
-const COLLECTION_ID = 2174;
-const API_BASE = "https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan/v2";
+const COLLECTION_ID = DEFAULT_COLLECTION_ID;
 
 const Selection: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -33,6 +16,7 @@ const Selection: React.FC = () => {
 
   useEffect(() => {
     fetchItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 
   async function findTotalPages(): Promise<number> {
@@ -124,12 +108,12 @@ const Selection: React.FC = () => {
 
       // Se chegamos aqui, há items nesta página
       const itemsWithAttachments: Item[] = await Promise.all(
-        data.items.map(async (item: any) => {
+        (data.items || []).map(async (item: any) => {
           let attachments: Attachment[] = [];
           try {
             const attRes = await fetch(`${API_BASE}/items/${item.id}/attachments`);
             const attData = await attRes.json();
-            attachments = attData as Attachment[];
+            attachments = (attData || []) as Attachment[];
           } catch (e) {
             console.warn(`Failed to fetch attachments for item ${item.id}:`, e);
             attachments = [];
@@ -140,7 +124,7 @@ const Selection: React.FC = () => {
             description: item.description,
             _thumbnail_id: item._thumbnail_id,
             attachments,
-          };
+          } as Item;
         })
       );
 
@@ -189,7 +173,7 @@ const Selection: React.FC = () => {
   }
 
   function getImageAttachments(item: Item): Attachment[] {
-    return item.attachments.filter(att => att.media_type === "image" && att.url);
+    return (item.attachments || []).filter(att => att.media_type === "image" && att.url);
   }
 
   function toggleSelection(itemId: number) {

@@ -6,6 +6,9 @@ interface FilterSidebarProps {
   authors: string[];
   dates: string[];
   types: string[];
+  authorCounts?: Record<string, number>;
+  dateCounts?: Record<string, number>;
+  typeCounts?: Record<string, number>;
   selectedAuthors: string[];
   selectedDates: string[];
   selectedTypes: string[];
@@ -26,21 +29,70 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onDateChange,
   onTypeChange,
   isLoading, // Recebe o estado de carregamento
+  authorCounts = {},
+  dateCounts = {},
+  typeCounts = {},
 }) => {
   
-  const renderFilterSection = (title: string, items: string[], selectedItems: string[], onChange: (item: string) => void) => (
+  // individual renderers used below: renderAuthors, renderDates, renderTypes
+
+  const renderAuthors = () => (
     <div className="filter-section">
-      <h4>{title}</h4>
+      <h4>Autores</h4>
       <div className="filter-options">
-        {items.map(item => (
-          <div key={item} className="filter-option">
+        {authors.map(author => (
+          <div key={author} className="filter-option">
             <input
               type="checkbox"
-              id={`${title}-${item}`}
-              checked={selectedItems.includes(item)}
-              onChange={() => onChange(item)}
+              id={`Autores-${author}`}
+              checked={selectedAuthors.includes(author)}
+              onChange={() => onAuthorChange(author)}
             />
-            <label htmlFor={`${title}-${item}`}>{item}</label>
+            <label htmlFor={`Autores-${author}`}>
+              {author} <span style={{ opacity: 0.7 }}>({authorCounts[author] || 0})</span>
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderDates = () => (
+    <div className="filter-section">
+      <h4>Datas</h4>
+      <div className="filter-options">
+        {dates.map(d => (
+          <div key={d} className="filter-option">
+            <input
+              type="checkbox"
+              id={`Datas-${d}`}
+              checked={selectedDates.includes(d)}
+              onChange={() => onDateChange(d)}
+            />
+            <label htmlFor={`Datas-${d}`}>
+              {d} <span style={{ opacity: 0.7 }}>({dateCounts[d] || 0})</span>
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const renderTypes = () => (
+    <div className="filter-section">
+      <h4>Tipos</h4>
+      <div className="filter-options">
+        {types.map(t => (
+          <div key={t} className="filter-option">
+            <input
+              type="checkbox"
+              id={`Tipos-${t}`}
+              checked={selectedTypes.includes(t)}
+              onChange={() => onTypeChange(t)}
+            />
+            <label htmlFor={`Tipos-${t}`}>
+              {t} <span style={{ opacity: 0.7 }}>({typeCounts[t] || 0})</span>
+            </label>
           </div>
         ))}
       </div>
@@ -63,9 +115,9 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
     <div className="filter-sidebar">
       <h3 className="filter-title">Filtros</h3>
       
-      {renderFilterSection("Autores", authors, selectedAuthors, onAuthorChange)}
-      {renderFilterSection("Datas", dates, selectedDates, onDateChange)}
-      {renderFilterSection("Tipos", types, selectedTypes, onTypeChange)}
+  {renderAuthors()}
+  {renderDates()}
+  {renderTypes()}
     </div>
   );
 };
