@@ -5,9 +5,13 @@ import { Item, Attachment } from '../types';
 
 interface ImageCardProps {
   item: Item;
+  // new optional props to support selection from parent Gallery
+  selectable?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (id: number) => void;
 }
 
-const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
+const ImageCard: React.FC<ImageCardProps> = ({ item, selectable = false, isSelected = false, onToggleSelect }) => {
   const [finalImageUrl, setFinalImageUrl] = useState<string | null | undefined>(item.imageUrl ?? null);
   const [isLoading, setIsLoading] = useState<boolean>(() => !Boolean(item.imageUrl));
 
@@ -48,8 +52,22 @@ const ImageCard: React.FC<ImageCardProps> = ({ item }) => {
   }, [item.id, item.imageUrl]);
 
   return (
-    <div className="image-card">
+    <div className={"image-card" + (isSelected ? ' selected' : '')}>
       <div className="image-container">
+        {selectable && (
+          <button
+            className="select-badge"
+            aria-pressed={isSelected}
+            title={isSelected ? 'Selecionado' : 'Selecionar'}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              if (onToggleSelect) onToggleSelect(item.id);
+            }}
+          >
+            {isSelected ? '✓' : '+'}
+          </button>
+        )}
         {isLoading ? (
           <div className="card-spinner" />
         ) : finalImageUrl ? (

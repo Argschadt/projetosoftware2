@@ -69,3 +69,32 @@
   white-space: nowrap;
   text-align: center;
 }
+
+/* Selection visuals */
+.image-card.selected {
+  box-shadow: 0 12px 35px rgba(102,126,234,0.25);
+  transform: translateY(-6px);
+  border: 2px solid rgba(102,126,234,0.9);
+}
+
+.select-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.select-badge:focus {
+  outline: 2px solid #fff;
+}

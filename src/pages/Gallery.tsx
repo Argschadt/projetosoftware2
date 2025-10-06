@@ -27,6 +27,8 @@ const Gallery: React.FC = () => {
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  // selection state for gallery items (ids)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchFilterOptions();
@@ -68,6 +70,38 @@ const Gallery: React.FC = () => {
       prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
     );
   };
+
+  const toggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  function saveSelection() {
+    // Pega os objetos completos das obras selecionadas (da página atual)
+    const selectedData = items
+      .filter(item => selectedIds.has(item.id))
+      .map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        // usa a imagem disponível no item quando houver
+        imageUrl: item.imageUrl ?? null,
+      }));
+
+    // Salva no localStorage como string JSON
+    try {
+      localStorage.setItem('selectedArtworks', JSON.stringify(selectedData));
+      console.log('Selecionados salvos no localStorage:', selectedData);
+      alert(`Seleção salva! ${selectedData.length} obras armazenadas.`);
+    } catch (e) {
+      console.error('Falha ao salvar seleção:', e);
+      alert('Não foi possível salvar a seleção. Verifique se o localStorage está disponível.');
+    }
+  }
 
   async function fetchFilterOptions() {
     setLoadingFilters(true);
@@ -313,6 +347,37 @@ const Gallery: React.FC = () => {
 
           <h1 className="gallery-title">Galeria de Arte Tainacan</h1>
 
+          {/* Rótulo orientando o usuário sobre a seleção para a Galeria 3D */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
+            <div style={{ color: '#444', fontSize: 14, fontWeight: 500 }}>
+              Selecione as obras que irão a Galeria 3D:
+            </div>
+          </div>
+
+          {/* Visual save button (executa saveSelection) */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+            <button
+              className="page-button"
+              style={{ background: '#28a745', marginRight: 8 }}
+              onClick={(e) => { e.preventDefault(); saveSelection(); }}
+            >
+              Salvar Seleção ({selectedIds.size})
+            </button>
+            <button
+              className="page-button"
+              style={{ background: selectedIds.size === 0 ? '#ccc' : '#dc3545' }}
+              onClick={(e) => {
+                e.preventDefault();
+                // Clear selection visually
+                setSelectedIds(new Set());
+              }}
+              disabled={selectedIds.size === 0}
+              title="Limpar seleção"
+            >
+              Limpar Seleção
+            </button>
+          </div>
+
           {totalPages > 1 && (
             <p className="gallery-info">
               Página {page} de {totalPages} • 24 imagens por página
@@ -328,7 +393,13 @@ const Gallery: React.FC = () => {
             <>
               <div className="gallery-grid">
                 {items.map((item) => (
-                  <ImageCard key={item.id} item={item} />
+                  <ImageCard
+                    key={item.id}
+                    item={item}
+                    selectable={true}
+                    isSelected={selectedIds.has(item.id)}
+                    onToggleSelect={toggleSelect}
+                  />
                 ))}
               </div>
 

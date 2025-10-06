@@ -22,12 +22,7 @@ export default function Navbar() {
         >
           Galeria
         </NavLink>
-        <NavLink
-          to="/selecao"
-          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
-        >
-          Seleção de Obras
-        </NavLink>
+        {/* Seleção removida - link eliminado */}
         <NavLink
           to="/unity"
           className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
