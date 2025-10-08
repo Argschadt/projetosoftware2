@@ -29,6 +29,61 @@ const Gallery: React.FC = () => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   // selection state for gallery items (ids)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  // state for selected items data
+  const [selectedItemsData, setSelectedItemsData] = useState<Item[]>([]);
+
+  // Carregar seleção do localStorage na montagem
+  useEffect(() => {
+    const savedSelection = localStorage.getItem('gallerySelection');
+    if (savedSelection) {
+      try {
+        const parsed = JSON.parse(savedSelection);
+        if (Array.isArray(parsed)) {
+          setSelectedIds(new Set(parsed));
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar seleção do localStorage:', error);
+      }
+    }
+    
+    const savedItemsData = localStorage.getItem('gallerySelectedItemsData');
+    if (savedItemsData) {
+      try {
+        const parsed = JSON.parse(savedItemsData);
+        if (Array.isArray(parsed)) {
+          setSelectedItemsData(parsed);
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar dados dos itens selecionados:', error);
+      }
+    }
+  }, []);
+
+  // Salvar seleção no localStorage sempre que mudar
+  useEffect(() => {
+    localStorage.setItem('gallerySelection', JSON.stringify(Array.from(selectedIds)));
+  }, [selectedIds]);
+
+  // Atualizar dados dos itens selecionados quando items ou selectedIds mudam
+  useEffect(() => {
+    const currentSelectedData = items.filter(item => selectedIds.has(item.id));
+    const updatedSelectedData = [...selectedItemsData];
+    
+    // Adicionar novos itens selecionados
+    currentSelectedData.forEach(item => {
+      if (!updatedSelectedData.some(selected => selected.id === item.id)) {
+        updatedSelectedData.push(item);
+      }
+    });
+    
+    // Remover itens que não estão mais selecionados
+    const filteredData = updatedSelectedData.filter(item => selectedIds.has(item.id));
+    
+    if (JSON.stringify(filteredData) !== JSON.stringify(selectedItemsData)) {
+      setSelectedItemsData(filteredData);
+      localStorage.setItem('gallerySelectedItemsData', JSON.stringify(filteredData));
+    }
+  }, [items, selectedIds, selectedItemsData]);
 
   useEffect(() => {
     fetchFilterOptions();
@@ -81,16 +136,14 @@ const Gallery: React.FC = () => {
   };
 
   function saveSelection() {
-    // Pega os objetos completos das obras selecionadas (da página atual)
-    const selectedData = items
-      .filter(item => selectedIds.has(item.id))
-      .map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        // usa a imagem disponível no item quando houver
-        imageUrl: item.imageUrl ?? null,
-      }));
+    // Usa os dados completos dos itens selecionados (de todas as páginas)
+    const selectedData = selectedItemsData.map(item => ({
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      // usa a imagem disponível no item quando houver
+      imageUrl: item.imageUrl ?? null,
+    }));
 
     // Salva no localStorage como string JSON
     try {
@@ -385,17 +438,19 @@ const Gallery: React.FC = () => {
               style={{ background: '#28a745', marginRight: 8 }}
               onClick={(e) => { e.preventDefault(); saveSelection(); }}
             >
-              Salvar Seleção ({selectedIds.size})
+              Salvar Seleção ({selectedItemsData.length})
             </button>
             <button
               className="page-button"
-              style={{ background: selectedIds.size === 0 ? '#ccc' : '#dc3545' }}
+              style={{ background: selectedItemsData.length === 0 ? '#ccc' : '#dc3545' }}
               onClick={(e) => {
                 e.preventDefault();
                 // Clear selection visually
                 setSelectedIds(new Set());
+                setSelectedItemsData([]);
+                localStorage.removeItem('gallerySelectedItemsData');
               }}
-              disabled={selectedIds.size === 0}
+              disabled={selectedItemsData.length === 0}
               title="Limpar seleção"
             >
               Limpar Seleção
