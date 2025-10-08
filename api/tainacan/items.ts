@@ -7,42 +7,62 @@ const TAINACAN_API = 'https://tainacan.ufsm.br/acervo-artistico/wp-json/tainacan
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const { collection, page = 1, perpage = 36, search } = req.query;
-    if (!collection) {
-      res.status(400).json({ error: 'Missing collection id' });
-      return;
-    }
-  // Monta a URL da API do Tainacan
-  // O endpoint do Tainacan usa o parâmetro 'paged' para navegação (não 'page'),
-  // portanto reencaminhamos 'page' do cliente como 'paged' para o upstream.
-  let url = `${TAINACAN_API}?collection_id=${collection}&paged=${page}&perpage=${perpage}`;
-    // Log para debugging local - mostra qual URL estamos chamando no upstream
-    console.log('[api/tainacan/items] upstream url ->', url);
-    if (search) {
-      url += `&search=${encodeURIComponent(search as string)}`;
-    }
-    const upstream = await fetch(url);
-    if (!upstream.ok) {
-      res.status(upstream.status).json({ error: `Upstream error: ${upstream.statusText}` });
-      return;
-    }
+    const url = new URL(req.url!, `http://${req.headers.host}`);
+    const path = url.pathname;
 
-  // Repassar os headers de paginação para o cliente
-    res.setHeader('x-wp-total', upstream.headers.get('x-wp-total') || '0');
-    res.setHeader('x-wp-totalpages', upstream.headers.get('x-wp-totalpages') || '0');
-  // Expor cabeçalhos de paginação e nosso cabeçalho debug local
-  res.setHeader('Access-Control-Expose-Headers', 'x-wp-total, x-wp-totalpages, x-upstream-url');
-  // Header auxiliar de debug local para inspecionar qual URL foi usada upstream
-  res.setHeader('x-upstream-url', url);
-
-    const data = await upstream.json();
-    // Libera CORS para o navegador aceitar
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
-  // Desabilita cache no proxy durante o desenvolvimento para evitar respostas stale
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.status(200).json(data);
+    if (path === '/api/tainacan/items') {
+      // Handle main items list
+      const { collection, page = 1, perpage = 36, search, fetch_only } = req.query;
+      if (!collection) {
+        res.status(400).json({ error: 'Missing collection id' });
+        return;
+      }
+      let upstreamUrl = `${TAINACAN_API}?collection_id=${collection}&paged=${page}&perpage=${perpage}`;
+      if (search) {
+        upstreamUrl += `&search=${encodeURIComponent(search as string)}`;
+      }
+      if (fetch_only) {
+        upstreamUrl += `&fetch_only=${fetch_only}`;
+      }
+      console.log('[api/tainacan/items] upstream url ->', upstreamUrl);
+      const upstream = await fetch(upstreamUrl);
+      if (!upstream.ok) {
+        res.status(upstream.status).json({ error: `Upstream error: ${upstream.statusText}` });
+        return;
+      }
+      res.setHeader('x-wp-total', upstream.headers.get('x-wp-total') || '0');
+      res.setHeader('x-wp-totalpages', upstream.headers.get('x-wp-totalpages') || '0');
+      res.setHeader('Access-Control-Expose-Headers', 'x-wp-total, x-wp-totalpages, x-upstream-url');
+      res.setHeader('x-upstream-url', upstreamUrl);
+      const data = await upstream.json();
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.status(200).json(data);
+    } else {
+      // Handle attachments: /api/tainacan/items/{itemId}/attachments
+      const match = path.match(/^\/api\/tainacan\/items\/(\d+)\/attachments$/);
+      if (match) {
+        const itemId = match[1];
+        const { perpage = 5 } = req.query;
+        const upstreamUrl = `${TAINACAN_API}/${itemId}/attachments?perpage=${perpage}`;
+        console.log('[api/tainacan/items/attachments] upstream url ->', upstreamUrl);
+        const upstream = await fetch(upstreamUrl);
+        if (!upstream.ok) {
+          res.status(upstream.status).json({ error: `Upstream error: ${upstream.statusText}` });
+          return;
+        }
+        const data = await upstream.json();
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Range');
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.status(200).json(data);
+      } else {
+        res.status(404).json({ error: 'Not found' });
+      }
+    }
   } catch (e: any) {
     res.status(500).json({ error: e?.message || e });
   }
