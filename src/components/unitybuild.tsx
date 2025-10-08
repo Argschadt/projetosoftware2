@@ -37,11 +37,11 @@ export default function UnityBuild({
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
-    const loaderUrl = `${buildPath}/selecionadosArt.loader.js`;
+    const loaderUrl = `${buildPath}/testesMapBuild.loader.js`;
     const config = {
-      dataUrl: `${buildPath}/selecionadosArt.data`,
-      frameworkUrl: `${buildPath}/selecionadosArt.framework.js`,
-      codeUrl: `${buildPath}/selecionadosArt.wasm`,
+      dataUrl: `${buildPath}/testesMapBuild.data`,
+      frameworkUrl: `${buildPath}/testesMapBuild.framework.js`,
+      codeUrl: `${buildPath}/testesMapBuild.wasm`,
       streamingAssetsUrl: "StreamingAssets",
       companyName: "MyCompany",
       productName: "MyUnityApp",

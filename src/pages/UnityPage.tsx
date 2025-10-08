@@ -38,7 +38,7 @@ export default function UnityPage() {
 
       {showUnity ? (
         <div className="unity-viewer">
-          <UnityBuild buildPath="/selecionadosArt/Build" />
+          <UnityBuild buildPath="/testesMapBuild/Build" />
         </div>
       ) : (
         <div className="unity-placeholder">
