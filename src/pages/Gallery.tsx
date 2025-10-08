@@ -214,8 +214,31 @@ const Gallery: React.FC = () => {
       
       const data = await response.json();
       
-      const transformedItems: Item[] = (data.items || []).map((apiItem: any) => {
+      // Primeiro, obter os itens básicos com thumbnails
+      const basicItems = data.items || [];
+      
+      // Depois, buscar metadados completos para cada item
+      const itemsWithMetadata = await Promise.all(
+        basicItems.map(async (apiItem: any) => {
+          try {
+            const metadataResponse = await fetch(`/api/tainacan/items/${apiItem.id}`, { signal });
+            if (!metadataResponse.ok) {
+              console.warn(`Failed to fetch metadata for item ${apiItem.id}`);
+              return apiItem; // Retornar item básico se falhar
+            }
+            const fullItem = await metadataResponse.json();
+            return { ...apiItem, metadata: fullItem.metadata };
+          } catch (error) {
+            console.warn(`Error fetching metadata for item ${apiItem.id}:`, error);
+            return apiItem; // Retornar item básico se falhar
+          }
+        })
+      );
+      
+      const transformedItems: Item[] = itemsWithMetadata.map((apiItem: any) => {
+        console.log('Full apiItem for', apiItem.id, ':', JSON.stringify(apiItem, null, 2));
         const metadata = apiItem.metadata || {};
+        console.log('Metadata for item', apiItem.id, ':', JSON.stringify(metadata, null, 2));
         let author = metadata['taxonomia']?.value?.[0]?.name || '';
         let title = metadata['titulo-6']?.value || apiItem.title?.rendered || 'Sem Título';
         let date = metadata['data-da-obra-2']?.value || '';
