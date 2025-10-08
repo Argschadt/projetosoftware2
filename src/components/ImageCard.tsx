@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './ImageCard.css';
-import { API_BASE } from '../config';
 import { Item, Attachment } from '../types';
 
 interface ImageCardProps {
@@ -14,19 +13,20 @@ interface ImageCardProps {
 const ImageCard: React.FC<ImageCardProps> = ({ item, selectable = false, isSelected = false, onToggleSelect }) => {
   const [finalImageUrl, setFinalImageUrl] = useState<string | null | undefined>(item.imageUrl ?? null);
   const [isLoading, setIsLoading] = useState<boolean>(() => !Boolean(item.imageUrl));
+  const [hasTriedFallback, setHasTriedFallback] = useState<boolean>(false);
 
   useEffect(() => {
     let aborted = false;
     const controller = new AbortController();
 
-    if (item.imageUrl) {
+    if (item.imageUrl && !hasTriedFallback) {
       setFinalImageUrl(item.imageUrl);
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-    fetch(`${API_BASE}/items/${item.id}/attachments?perpage=5`, { signal: controller.signal })
+    fetch(`/api/tainacan/items/${item.id}/attachments?perpage=5`, { signal: controller.signal })
       .then(res => res.json())
       .then((attachments: Attachment[]) => {
         if (aborted) return;
@@ -49,7 +49,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ item, selectable = false, isSelec
       aborted = true;
       controller.abort();
     };
-  }, [item.id, item.imageUrl]);
+  }, [item.id, item.imageUrl, hasTriedFallback]);
 
   return (
     <div className={"image-card" + (isSelected ? ' selected' : '')}>
@@ -76,6 +76,13 @@ const ImageCard: React.FC<ImageCardProps> = ({ item, selectable = false, isSelec
             alt={item.title ?? `Imagem da obra ${item.id}`}
             className="card-image"
             loading="lazy"
+            onError={() => {
+              if (!hasTriedFallback) {
+                setHasTriedFallback(true);
+              } else {
+                setFinalImageUrl(null);
+              }
+            }}
           />
         ) : (
           <div className="no-image-placeholder">

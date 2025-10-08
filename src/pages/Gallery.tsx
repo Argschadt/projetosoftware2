@@ -198,6 +198,7 @@ const Gallery: React.FC = () => {
         order: 'ASC',
         orderby: 'date',
         perpage: '24',
+        fetch_only: 'thumbnail',
       });
 
       const searchTerms = [...selectedAuthors, ...selectedDates, ...selectedTypes].join(' ');
@@ -222,7 +223,7 @@ const Gallery: React.FC = () => {
         
         let imageUrl = '';
         if (apiItem.thumbnail && apiItem.thumbnail['tainacan-medium']) {
-          imageUrl = apiItem.thumbnail['tainacan-medium'];
+          imageUrl = apiItem.thumbnail['tainacan-medium'][0];
         } 
         else if (apiItem.document_as_html) {
           const match = apiItem.document_as_html.match(/src="([^"]+)"/);
