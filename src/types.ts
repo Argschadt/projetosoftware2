@@ -19,3 +19,13 @@ export type Item = {
   type?: string;
   attachments?: Attachment[];
 };
+
+export type ApiItem = {
+  id: number;
+  title?: { rendered?: string };
+  description?: string;
+  _thumbnail_id?: string;
+  metadata?: Record<string, { value?: unknown }>;
+  thumbnail?: Record<string, string[]>;
+  document_as_html?: string;
+};

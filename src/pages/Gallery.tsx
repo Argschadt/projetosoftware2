@@ -1,9 +1,10 @@
-﻿import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState, useCallback } from "react";
 import ImageCard from "../components/ImageCard";
 import FilterSidebar from "../components/FilterSidebar";
 import "./Gallery.css";
 import { DEFAULT_COLLECTION_ID } from "../config";
-import { Item } from "../types";
+import type { Item, ApiItem } from "../types";
+import { getCachedFilters, setCachedFilters } from "../utils/filterCache";
 
 const COLLECTION_ID = DEFAULT_COLLECTION_ID;
 
@@ -19,10 +20,6 @@ const Gallery: React.FC = () => {
   const [allAuthors, setAllAuthors] = useState<string[]>([]);
   const [allDates, setAllDates] = useState<string[]>([]);
   const [allTypes, setAllTypes] = useState<string[]>([]);
-
-  const [authorCounts, setAuthorCounts] = useState<Record<string, number>>({});
-  const [dateCounts, setDateCounts] = useState<Record<string, number>>({});
-  const [typeCounts, setTypeCounts] = useState<Record<string, number>>({});
 
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
@@ -90,50 +87,50 @@ const Gallery: React.FC = () => {
   }, []);
 
   // Efeito unificado para buscar itens sempre que a página ou os filtros mudarem
+  // fetchItems é uma função interna que muda a cada render
   useEffect(() => {
     const controller = new AbortController();
-    fetchItems(page, controller.signal).catch((e) => {
-      if ((e as any)?.name === 'AbortError') return;
+    fetchItems(page, controller.signal).catch((e: unknown) => {
+      if ((e as { name?: string })?.name === 'AbortError') return;
       console.error('fetchItems failed:', e);
     });
     return () => controller.abort();
   }, [page, selectedAuthors, selectedDates, selectedTypes]);
 
-  // ...existing code...
-
   // Efeito para resetar a página quando os filtros são alterados
+  // page está omitida intencionalmente para evitar loop infinito
   useEffect(() => {
     if (page !== 1) {
       setPage(1);
     }
   }, [selectedAuthors, selectedDates, selectedTypes]);
 
-  const handleAuthorChange = (author: string) => {
-    setSelectedAuthors(prev => 
-      prev.includes(author) ? prev.filter(a => a !== author) : [...prev, author]
+  const handleAuthorChange = useCallback((author: string) => {
+    setSelectedAuthors((prev) => 
+      prev.includes(author) ? prev.filter((a) => a !== author) : [...prev, author]
     );
-  };
+  }, []);
 
-  const handleDateChange = (date: string) => {
-    setSelectedDates(prev =>
-      prev.includes(date) ? prev.filter(d => d !== date) : [...prev, date]
+  const handleDateChange = useCallback((date: string) => {
+    setSelectedDates((prev) =>
+      prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]
     );
-  };
+  }, []);
 
-  const handleTypeChange = (type: string) => {
-    setSelectedTypes(prev =>
-      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]
+  const handleTypeChange = useCallback((type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
-  };
+  }, []);
 
-  const toggleSelect = (id: number) => {
-    setSelectedIds(prev => {
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
   function saveSelection() {
     // Usa os dados completos dos itens selecionados (de todas as páginas)
@@ -159,9 +156,35 @@ const Gallery: React.FC = () => {
   async function fetchFilterOptions() {
     setLoadingFilters(true);
     try {
-      // Busca as primeiras 5 páginas (até 500 itens) para gerar filtros rapidamente.
-      // Observação: alguns backends (WordPress/Tainacan) esperam o parâmetro `paged` para paginação;
-      // enviar apenas `page` pode ser ignorado pelo servidor e retornar sempre a mesma página.
+      // ✅ Otimização: Tenta carregar do cache primeiro
+      const cached = getCachedFilters();
+      if (cached) {
+        console.log('Carregando filtros do cache');
+        setAllAuthors(cached.authors);
+        setAllDates(cached.dates);
+        setAllTypes(cached.types);
+        setLoadingFilters(false);
+
+        // Atualiza em background sem bloquear a UI
+        updateFiltersInBackground();
+        return;
+      }
+
+      // Se não houver cache, busca do servidor
+      await fetchFiltersFromServer();
+    } catch (error) {
+      console.error("Failed to fetch filter options from item list:", error);
+      // Em caso de falha, a lista de filtros ficará vazia, mas a galeria principal ainda funciona.
+      setLoadingFilters(false);
+    }
+  }
+
+  /**
+   * Busca os filtros do servidor e atualiza o cache
+   */
+  async function fetchFiltersFromServer() {
+    try {
+      // Busca as primeiras 5 páginas (até 500 itens) para gerar filtros
       const pagePromises = [1, 2, 3, 4, 5].map((p) =>
         fetch(`/api/tainacan/items?collection=${COLLECTION_ID}&perpage=100&page=${p}&paged=${p}&order=ASC&orderby=date`).then((res) => res.json())
       );
@@ -176,67 +199,61 @@ const Gallery: React.FC = () => {
         ...(page5Data.items || []),
       ];
 
-  const authors = new Set<string>();
-    const dates = new Set<string>();
-    const types = new Set<string>();
-
-    const _authorCounts: Record<string, number> = {};
-    const _dateCounts: Record<string, number> = {};
-    const _typeCounts: Record<string, number> = {};
+      const authors = new Set<string>();
+      const dates = new Set<string>();
+      const types = new Set<string>();
 
       for (const item of itemsFromApi) {
         const metadata = item.metadata || {};
-        const author = metadata['taxonomia']?.value?.[0]?.name;
+        const author = (metadata['taxonomia']?.value as Array<{ name: string }>)?.[0]?.name;
         const date = metadata['data-da-obra-2']?.value;
-        const type = metadata['tecnica-3']?.value?.name;
+        const type = (metadata['tecnica-3']?.value as { name?: string })?.name;
 
         if (author) {
           authors.add(author);
-
-          // total per author
-          _authorCounts[author] = (_authorCounts[author] || 0) + 1;
-
-          // year extraction (try to extract 4-digit year) and count globally
-          let yearKey = '';
-          if (typeof date === 'string') {
-            const m = date.match(/(\d{4})/);
-            yearKey = m ? m[1] : date;
-          } else if (date) {
-            yearKey = String(date);
-          } else {
-            yearKey = 'Unknown';
-          }
-
-          _dateCounts[yearKey] = (_dateCounts[yearKey] || 0) + 1;
-
-          // technique count globally
-          const tech = type || 'Unknown';
-          _typeCounts[tech] = (_typeCounts[tech] || 0) + 1;
         }
 
         if (date) {
-          // add normalized year key to date set for filter list
           const m = typeof date === 'string' ? date.match(/(\d{4})/) : null;
           const dateKey = m ? m[1] : (date ? String(date) : 'Unknown');
           dates.add(dateKey);
         }
-        if (type) types.add(type);
-      }
-      setAllAuthors(Array.from(authors).sort());
-      setAllDates(Array.from(dates).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })));
-      setAllTypes(Array.from(types).sort());
 
-      // set computed counts
-      setAuthorCounts(_authorCounts);
-      setDateCounts(_dateCounts);
-      setTypeCounts(_typeCounts);
+        if (type) {
+          types.add(type);
+        }
+      }
+
+      const sortedAuthors = Array.from(authors).sort();
+      const sortedDates = Array.from(dates).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      const sortedTypes = Array.from(types).sort();
+
+      setAllAuthors(sortedAuthors);
+      setAllDates(sortedDates);
+      setAllTypes(sortedTypes);
+
+      // ✅ Salva no cache para próximas carregações
+      setCachedFilters(sortedAuthors, sortedDates, sortedTypes);
+      console.log('Filtros atualizados e salvos em cache');
 
     } catch (error) {
-      console.error("Failed to fetch filter options from item list:", error);
-      // Em caso de falha, a lista de filtros ficará vazia, mas a galeria principal ainda funciona.
+      console.error("Failed to fetch filters from server:", error);
     } finally {
       setLoadingFilters(false);
     }
+  }
+
+  /**
+   * Atualiza os filtros em background sem bloquear a UI
+   */
+  function updateFiltersInBackground() {
+    // Executa em background (não bloqueia a UI)
+    setTimeout(() => {
+      console.log('Atualizando filtros em background...');
+      fetchFiltersFromServer().catch((error) => {
+        console.warn('Erro ao atualizar filtros em background:', error);
+      });
+    }, 2000); // Aguarda 2 segundos antes de atualizar
   }
 
   async function fetchItems(currentPage: number, signal?: AbortSignal) {
@@ -245,8 +262,6 @@ const Gallery: React.FC = () => {
       const params = new URLSearchParams({
         collection: COLLECTION_ID.toString(),
         page: currentPage.toString(),
-        // Muitos servidores (incluindo o proxy do Vite) esperam 'paged' como chave
-        // para paginação; enviaremos ambos para compatibilidade em dev/prod.
         paged: currentPage.toString(),
         order: 'ASC',
         orderby: 'date',
@@ -259,43 +274,22 @@ const Gallery: React.FC = () => {
         params.append('search', searchTerms);
       }
       
-  const response = await fetch(`/api/tainacan/items?${params.toString()}`, { signal });
+      const response = await fetch(`/api/tainacan/items?${params.toString()}`, { signal });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      
-      // Primeiro, obter os itens básicos com thumbnails
       const basicItems = data.items || [];
       
-      // Depois, buscar metadados completos para cada item
-      const itemsWithMetadata = await Promise.all(
-        basicItems.map(async (apiItem: any) => {
-          try {
-            const metadataResponse = await fetch(`/api/tainacan/items/${apiItem.id}`, { signal });
-            if (!metadataResponse.ok) {
-              console.warn(`Failed to fetch metadata for item ${apiItem.id}`);
-              return apiItem; // Retornar item básico se falhar
-            }
-            const fullItem = await metadataResponse.json();
-            return { ...apiItem, metadata: fullItem.metadata };
-          } catch (error) {
-            console.warn(`Error fetching metadata for item ${apiItem.id}:`, error);
-            return apiItem; // Retornar item básico se falhar
-          }
-        })
-      );
-      
-      const transformedItems: Item[] = itemsWithMetadata.map((apiItem: any) => {
-        console.log('Full apiItem for', apiItem.id, ':', JSON.stringify(apiItem, null, 2));
-        const metadata = apiItem.metadata || {};
-        console.log('Metadata for item', apiItem.id, ':', JSON.stringify(metadata, null, 2));
-        let author = metadata['taxonomia']?.value?.[0]?.name || '';
-        let title = metadata['titulo-6']?.value || apiItem.title?.rendered || 'Sem Título';
-        let date = metadata['data-da-obra-2']?.value || '';
-        let type = metadata['tecnica-3']?.value?.name || '';
+      // ✅ Otimização: Usar apenas dados disponíveis sem fazer 24 requisições extras
+      const transformedItems: Item[] = basicItems.map((apiItem: ApiItem) => {
+        const metadata = (apiItem.metadata || {}) as Record<string, { value?: unknown }>;
+        const author = (metadata['taxonomia']?.value as Array<{ name: string }>)?.[0]?.name || '';
+        const title = (metadata['titulo-6']?.value as string) || apiItem.title?.rendered || 'Sem Título';
+        const date = (metadata['data-da-obra-2']?.value as string) || '';
+        const type = (metadata['tecnica-3']?.value as { name: string })?.name || '';
         
         let imageUrl = '';
         if (apiItem.thumbnail && apiItem.thumbnail['tainacan-medium']) {
@@ -320,17 +314,14 @@ const Gallery: React.FC = () => {
         } as Item;
       });
       
-      // Sempre substitui os itens com os da página atual
       setItems(transformedItems);
 
       // Lógica de paginação mais robusta
-  const perPage = 24;
-  const totalPagesHeader = response.headers.get('x-wp-totalpages');
-  const parsedTotalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : undefined;
-  setTotalPages(parsedTotalPages ?? currentPage);
+      const perPage = 24;
+      const totalPagesHeader = response.headers.get('x-wp-totalpages');
+      const parsedTotalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : undefined;
+      setTotalPages(parsedTotalPages ?? currentPage);
 
-      // Se tivermos o total de páginas do servidor, usa-o para decidir se há próxima página,
-      // caso contrário, usa o tamanho do resultado como heurística.
       const hasNext = typeof parsedTotalPages === 'number'
         ? currentPage < parsedTotalPages
         : transformedItems.length === perPage;
@@ -352,16 +343,13 @@ const Gallery: React.FC = () => {
         authors={allAuthors}
         dates={allDates}
         types={allTypes}
-        authorCounts={authorCounts}
-        dateCounts={dateCounts}
-        typeCounts={typeCounts}
         selectedAuthors={selectedAuthors}
         selectedDates={selectedDates}
         selectedTypes={selectedTypes}
         onAuthorChange={handleAuthorChange}
         onDateChange={handleDateChange}
         onTypeChange={handleTypeChange}
-        isLoading={loadingFilters} // Passa o estado de carregamento para a sidebar
+        isLoading={loadingFilters}
       />
       <div className="gallery-container">
         <div className="gallery-content">

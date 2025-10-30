@@ -1,24 +1,22 @@
 // src/components/FilterSidebar.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import './FilterSidebar.css';
 
 interface FilterSidebarProps {
   authors: string[];
   dates: string[];
   types: string[];
-  authorCounts?: Record<string, number>;
-  dateCounts?: Record<string, number>;
-  typeCounts?: Record<string, number>;
   selectedAuthors: string[];
   selectedDates: string[];
   selectedTypes: string[];
   onAuthorChange: (author: string) => void;
   onDateChange: (date: string) => void;
   onTypeChange: (type: string) => void;
-  isLoading: boolean; // Novo prop para o estado de carregamento
+  isLoading: boolean;
 }
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({
+// ✅ Otimização: Usar React.memo para evitar re-renderizações quando props não mudam
+const FilterSidebar: React.FC<FilterSidebarProps> = React.memo(({
   authors,
   dates,
   types,
@@ -28,19 +26,15 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onAuthorChange,
   onDateChange,
   onTypeChange,
-  isLoading, // Recebe o estado de carregamento
-  authorCounts = {},
-  dateCounts = {},
-  typeCounts = {},
+  isLoading,
 }) => {
   
-  // individual renderers used below: renderAuthors, renderDates, renderTypes
-
-  const renderAuthors = () => (
+  // ✅ Otimização: Memoizar renderização dos filtros para evitar re-renderizações
+  const renderAuthors = useMemo(() => (
     <div className="filter-section">
       <h4>Autores</h4>
       <div className="filter-options">
-        {authors.map(author => (
+        {authors.map((author) => (
           <div key={author} className="filter-option">
             <input
               type="checkbox"
@@ -49,19 +43,19 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               onChange={() => onAuthorChange(author)}
             />
             <label htmlFor={`Autores-${author}`}>
-              {author} <span style={{ opacity: 0.7 }}>({authorCounts[author] || 0})</span>
+              {author}
             </label>
           </div>
         ))}
       </div>
     </div>
-  );
+  ), [authors, selectedAuthors, onAuthorChange]);
 
-  const renderDates = () => (
+  const renderDates = useMemo(() => (
     <div className="filter-section">
       <h4>Datas</h4>
       <div className="filter-options">
-        {dates.map(d => (
+        {dates.map((d) => (
           <div key={d} className="filter-option">
             <input
               type="checkbox"
@@ -70,19 +64,19 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               onChange={() => onDateChange(d)}
             />
             <label htmlFor={`Datas-${d}`}>
-              {d} <span style={{ opacity: 0.7 }}>({dateCounts[d] || 0})</span>
+              {d}
             </label>
           </div>
         ))}
       </div>
     </div>
-  );
+  ), [dates, selectedDates, onDateChange]);
 
-  const renderTypes = () => (
+  const renderTypes = useMemo(() => (
     <div className="filter-section">
       <h4>Tipos</h4>
       <div className="filter-options">
-        {types.map(t => (
+        {types.map((t) => (
           <div key={t} className="filter-option">
             <input
               type="checkbox"
@@ -91,13 +85,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
               onChange={() => onTypeChange(t)}
             />
             <label htmlFor={`Tipos-${t}`}>
-              {t} <span style={{ opacity: 0.7 }}>({typeCounts[t] || 0})</span>
+              {t}
             </label>
           </div>
         ))}
       </div>
     </div>
-  );
+  ), [types, selectedTypes, onTypeChange]);
 
   if (isLoading) {
     return (
@@ -114,12 +108,11 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   return (
     <div className="filter-sidebar">
       <h3 className="filter-title">Filtros</h3>
-      
-  {renderAuthors()}
-  {renderDates()}
-  {renderTypes()}
+      {renderAuthors}
+      {renderDates}
+      {renderTypes}
     </div>
   );
-};
+});
 
 export default FilterSidebar;

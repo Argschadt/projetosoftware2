@@ -30,7 +30,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const buf = Buffer.from(await upstream.arrayBuffer())
     res.status(200).send(buf)
-  } catch (e: any) {
-    res.status(500).send(`Proxy error: ${e?.message || e}`)
+  } catch (e) {
+    const error = e as { message?: string };
+    res.status(500).send(`Proxy error: ${error?.message || String(e)}`)
   }
 }
