@@ -41,7 +41,7 @@ const Selection: React.FC = () => {
           console.log(`Page ${testPage} is empty, found boundary`);
           break;
         }
-      } catch (e) {
+      } catch {
         console.log(`Error testing page ${testPage}, using last valid page`);
         break;
       }
@@ -66,7 +66,7 @@ const Selection: React.FC = () => {
         } else {
           high = mid - 1;
         }
-      } catch (e) {
+      } catch {
         high = mid - 1;
       }
     }
@@ -108,14 +108,14 @@ const Selection: React.FC = () => {
 
       // Se chegamos aqui, há items nesta página
       const itemsWithAttachments: Item[] = await Promise.all(
-        (data.items || []).map(async (item: any) => {
+        (data.items || []).map(async (item: { id: number; title: string; description: string; _thumbnail_id?: string }) => {
           let attachments: Attachment[] = [];
           try {
             const attRes = await fetch(`${API_BASE}/items/${item.id}/attachments`);
             const attData = await attRes.json();
             attachments = (attData || []) as Attachment[];
-          } catch (e) {
-            console.warn(`Failed to fetch attachments for item ${item.id}:`, e);
+          } catch {
+            console.warn(`Failed to fetch attachments for item ${item.id}`);
             attachments = [];
           }
           return {

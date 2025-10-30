@@ -12,7 +12,7 @@ interface ImageCardProps {
 
 const ImageCard: React.FC<ImageCardProps> = ({ item, selectable = false, isSelected = false, onToggleSelect }) => {
   const [finalImageUrl, setFinalImageUrl] = useState<string | null | undefined>(item.imageUrl ?? null);
-  const [isLoading, setIsLoading] = useState<boolean>(() => !Boolean(item.imageUrl));
+  const [isLoading, setIsLoading] = useState<boolean>(() => !item.imageUrl);
   const [hasTriedFallback, setHasTriedFallback] = useState<boolean>(false);
 
   useEffect(() => {

@@ -88,7 +88,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
       res.status(404).json({ error: 'Not found' });
     }
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message || e });
+  } catch (e) {
+    const error = e as { message?: string };
+    res.status(500).json({ error: error?.message || String(e) });
   }
 }

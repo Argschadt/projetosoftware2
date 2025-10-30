@@ -5,9 +5,9 @@ declare global {
   interface Window {
     createUnityInstance?: (
       canvas: HTMLCanvasElement,
-      config: any,
+      config: Record<string, unknown>,
       onProgress?: (progress: number) => void
-    ) => Promise<any>;
+    ) => Promise<{ Quit: () => Promise<void> }>;
   }
 }
 
@@ -23,7 +23,7 @@ export default function UnityBuild({
   height = 820,
 }: UnityBuildProps) {
   const unityRef = useRef<HTMLCanvasElement>(null);
-  const unityInstanceRef = useRef<any>(null);
+  const unityInstanceRef = useRef<{ Quit: () => Promise<void> } | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,10 +61,10 @@ export default function UnityBuild({
           .createUnityInstance(canvas, config, (progress: number) => {
             setLoadingProgress(Math.round(progress * 100));
           })
-          .then((instance) => {
+          .then((instance: { Quit: () => Promise<void> }) => {
             unityInstanceRef.current = instance;
           })
-          .catch((err: any) => setError(err.message));
+          .catch((err: { message?: string }) => setError(err.message || 'Erro desconhecido'));
       }
     };
 

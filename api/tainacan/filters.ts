@@ -6,8 +6,12 @@ const TAINACAN_API_BASE = 'https://tainacan.ufsm.br/acervo-artistico/wp-json/tai
 const COLLECTION_ID = 2174;
 const PER_PAGE = 100; // Fetch 100 items per request
 
+interface ApiResponse {
+  items?: Array<{ metadata?: Record<string, { value?: unknown }> }>;
+}
+
 async function fetchAllItems(res: VercelResponse) {
-  let allItems: any[] = [];
+  let allItems: Array<{ metadata?: Record<string, { value?: unknown }> }> = [];
   
   // 1. Fetch the first page to get total pages from headers
   const firstPageUrl = `${TAINACAN_API_BASE}/items?collection_id=${COLLECTION_ID}&perpage=${PER_PAGE}&page=1`;
@@ -20,7 +24,7 @@ async function fetchAllItems(res: VercelResponse) {
     return null;
   }
 
-  const firstPageJson: any = await firstPageResponse.json();
+  const firstPageJson = (await firstPageResponse.json()) as ApiResponse;
   // O endpoint retorna um objeto com propriedade `items` contendo o array
   const firstPageItems = Array.isArray(firstPageJson.items) ? firstPageJson.items : [];
   allItems = allItems.concat(firstPageItems);
@@ -33,14 +37,14 @@ async function fetchAllItems(res: VercelResponse) {
   }
 
   // 2. Create an array of promises for the remaining pages
-  const pagePromises = [];
+  const pagePromises: Promise<unknown>[] = [];
   for (let currentPage = 2; currentPage <= totalPages; currentPage++) {
     const pageUrl = `${TAINACAN_API_BASE}/items?collection_id=${COLLECTION_ID}&perpage=${PER_PAGE}&page=${currentPage}`;
     console.log(`Adding page to promise queue: ${currentPage}`);
     pagePromises.push(fetch(pageUrl).then(response => {
       if (!response.ok) {
         console.warn(`Skipping failed page ${currentPage}: ${response.statusText}`);
-        return []; // Return empty array for failed pages to not break Promise.all
+        return {}; // Return empty object for failed pages
       }
       return response.json();
     }));
@@ -50,7 +54,7 @@ async function fetchAllItems(res: VercelResponse) {
   try {
     const remainingPagesResults = await Promise.all(pagePromises);
     for (const pageJsonRaw of remainingPagesResults) {
-      const pageJson: any = pageJsonRaw;
+      const pageJson = pageJsonRaw as ApiResponse;
       const items = Array.isArray(pageJson.items) ? pageJson.items : [];
       allItems = allItems.concat(items);
     }
@@ -77,16 +81,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const types = new Set<string>();
 
     for (const item of allItems) {
-      const metadata = item.metadata || {};
+      const metadata = (item.metadata || {}) as Record<string, { value?: unknown }>;
 
-      if (metadata['taxonomia']?.value?.[0]?.name) {
-        authors.add(metadata['taxonomia'].value[0].name);
+      const author = (metadata['taxonomia']?.value as Array<{ name: string }>)?.[0]?.name;
+      if (author) {
+        authors.add(author);
       }
-      if (metadata['data-da-obra-2']?.value) {
-        dates.add(metadata['data-da-obra-2'].value);
+      
+      const dateValue = metadata['data-da-obra-2']?.value;
+      if (dateValue) {
+        dates.add(String(dateValue));
       }
-      if (metadata['tecnica-3']?.value?.name) {
-        types.add(metadata['tecnica-3'].value.name);
+      
+      const typeName = (metadata['tecnica-3']?.value as { name?: string })?.name;
+      if (typeName) {
+        types.add(typeName);
       }
     }
 
@@ -105,8 +114,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       types: sortedTypes,
     });
 
-  } catch (e: any) {
+  } catch (e) {
+    const error = e as { message?: string };
     console.error('Error in filters handler:', e);
-    res.status(500).json({ error: `Failed to process filter options: ${e?.message || e}` });
+    res.status(500).json({ error: `Failed to process filter options: ${error?.message || String(e)}` });
   }
 }
