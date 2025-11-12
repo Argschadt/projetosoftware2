@@ -259,48 +259,100 @@ const Gallery: React.FC = () => {
   async function fetchItems(currentPage: number, signal?: AbortSignal) {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
+      // 🔄 Estratégia Híbrida:
+      // 1. Requisição SEM fetch_only para obter títulos e metadados
+      // 2. Requisição COM fetch_only=thumbnail para obter imagens
+
+      const baseParams = {
         collection: COLLECTION_ID.toString(),
         page: currentPage.toString(),
         paged: currentPage.toString(),
         order: 'ASC',
         orderby: 'date',
         perpage: '24',
-        fetch_only: 'thumbnail',
-      });
+      };
 
       const searchTerms = [...selectedAuthors, ...selectedDates, ...selectedTypes].join(' ');
+
+      // Requisição 1: Metadados (sem fetch_only)
+      const metadataParams = new URLSearchParams({
+        ...baseParams,
+      });
       if (searchTerms) {
-        params.append('search', searchTerms);
+        metadataParams.append('search', searchTerms);
       }
-      
-      const response = await fetch(`/api/tainacan/items?${params.toString()}`, { signal });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+
+      const metadataResponse = await fetch(`/api/tainacan/items?${metadataParams.toString()}`, { signal });
+      if (!metadataResponse.ok) {
+        throw new Error(`HTTP error! status: ${metadataResponse.status}`);
       }
-      
-      const data = await response.json();
-      const basicItems = data.items || [];
-      
-      // ✅ Otimização: Usar apenas dados disponíveis sem fazer 24 requisições extras
+      const metadataData = await metadataResponse.json();
+      const basicItems = metadataData.items || [];
+
+      // Requisição 2: Imagens (com fetch_only=thumbnail) - apenas se houver itens
+      let thumbnailItems: Record<number, ApiItem> = {};
+      if (basicItems.length > 0) {
+        const thumbParams = new URLSearchParams({
+          ...baseParams,
+          fetch_only: 'thumbnail',
+        });
+        if (searchTerms) {
+          thumbParams.append('search', searchTerms);
+        }
+
+        try {
+          const thumbResponse = await fetch(`/api/tainacan/items?${thumbParams.toString()}`, { signal });
+          if (thumbResponse.ok) {
+            const thumbData = await thumbResponse.json();
+            const thumbItems = thumbData.items || [];
+            // Indexar por ID para acesso rápido
+            thumbItems.forEach((item: ApiItem) => {
+              thumbnailItems[item.id] = item;
+            });
+          }
+        } catch (error) {
+          console.warn('Falha ao buscar thumbnails, continuando com metadados', error);
+        }
+      }
+
+      // ✅ Mesclar dados: títulos de metadataItems + imagens de thumbnailItems
       const transformedItems: Item[] = basicItems.map((apiItem: ApiItem) => {
         const metadata = (apiItem.metadata || {}) as Record<string, { value?: unknown }>;
         const author = (metadata['taxonomia']?.value as Array<{ name: string }>)?.[0]?.name || '';
-        const title = (metadata['titulo-6']?.value as string) || apiItem.title?.rendered || 'Sem Título';
+        
+        // Extração segura do título
+        let title = 'Sem Título';
+        if (metadata['titulo-6']?.value && typeof metadata['titulo-6'].value === 'string') {
+          title = metadata['titulo-6'].value;
+        } else if (typeof apiItem.title === 'string') {
+          title = apiItem.title;
+        } else if (apiItem.title && typeof apiItem.title === 'object' && 'rendered' in apiItem.title) {
+          title = apiItem.title.rendered || 'Sem Título';
+        }
+        
         const date = (metadata['data-da-obra-2']?.value as string) || '';
         const type = (metadata['tecnica-3']?.value as { name: string })?.name || '';
         
+        // Extração de URL da imagem - com 3 níveis de fallback
         let imageUrl = '';
-        if (apiItem.thumbnail && apiItem.thumbnail['tainacan-medium']) {
-          imageUrl = apiItem.thumbnail['tainacan-medium'][0];
+        
+        // 1. Tentar thumbnail do thumbnailItems (fetch_only=thumbnail)
+        const thumbItem = thumbnailItems[apiItem.id];
+        if (thumbItem?.thumbnail && thumbItem.thumbnail['tainacan-medium']) {
+          imageUrl = thumbItem.thumbnail['tainacan-medium'][0];
         } 
+        // 2. Fallback para extrair do document_as_html (item atual)
         else if (apiItem.document_as_html) {
-          const match = apiItem.document_as_html.match(/src="([^"]+)"/);
+          let match = apiItem.document_as_html.match(/src=["']([^"']+)["']/);
+          if (!match) {
+            match = apiItem.document_as_html.match(/srcset=["']([^"']+)["']/);
+          }
           if (match) {
-            imageUrl = match[1];
+            const url = match[1].split(',')[0].split(' ')[0].trim();
+            imageUrl = url;
           }
         }
+        // 3. Se ainda não tem imageUrl, ImageCard.tsx fará fetch em /attachments
         
         return {
           id: apiItem.id,
@@ -318,7 +370,7 @@ const Gallery: React.FC = () => {
 
       // Lógica de paginação mais robusta
       const perPage = 24;
-      const totalPagesHeader = response.headers.get('x-wp-totalpages');
+      const totalPagesHeader = metadataResponse.headers.get('x-wp-totalpages');
       const parsedTotalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : undefined;
       setTotalPages(parsedTotalPages ?? currentPage);
 

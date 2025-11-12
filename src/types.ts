@@ -22,7 +22,7 @@ export type Item = {
 
 export type ApiItem = {
   id: number;
-  title?: { rendered?: string };
+  title?: string | { rendered?: string };
   description?: string;
   _thumbnail_id?: string;
   metadata?: Record<string, { value?: unknown }>;
