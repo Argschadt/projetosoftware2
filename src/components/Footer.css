@@ -6,6 +6,7 @@
   margin-top: auto;
   border-top: 3px solid var(--ufsm-accent);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
 }
 
 .footer-content {
@@ -19,4 +20,24 @@
   font-size: 0.95rem;
   font-weight: 500;
   letter-spacing: 0.3px;
+}
+
+.admin-link {
+  position: absolute;
+  bottom: 15px;
+  right: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.admin-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
