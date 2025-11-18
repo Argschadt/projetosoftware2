@@ -1,18 +1,22 @@
 .footer {
-  background-color: var(--ufsm-dark-gray);
+  background: linear-gradient(90deg, #1a3a52 0%, #2c4e68 100%);
   color: var(--ufsm-white);
-  padding: 20px 0;
+  padding: 2rem 0;
   text-align: center;
-  margin-top: auto; /* Empurra o footer para o final do flex container */
+  margin-top: auto;
+  border-top: 3px solid var(--ufsm-accent);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .footer-content {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 2rem;
 }
 
 .footer p {
-  margin: 5px 0;
-  font-size: 0.9rem;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }

@@ -1,67 +1,106 @@
 /* src/components/FilterSidebar.css */
 .filter-sidebar {
-  width: 250px;
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-right: 1px solid #ddd;
+  width: 280px;
+  padding: 1.5rem;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ecf0f1 100%);
+  border-right: 2px solid #e0e0e0;
   height: 100%;
   overflow-y: auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .filter-title {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #333;
+  font-size: 1.6rem;
+  margin-bottom: 1.5rem;
+  color: var(--ufsm-primary);
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 .search-button-sidebar {
   width: 100%;
-  padding: 10px;
-  background-color: #007bff;
+  padding: 0.85rem 1rem;
+  background: var(--ufsm-secondary);
   color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
+  border: 2px solid var(--ufsm-secondary);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
 }
 
 .search-button-sidebar:hover {
-  background-color: #0056b3;
+  background: var(--ufsm-primary);
+  border-color: var(--ufsm-primary);
+  box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+  transform: translateY(-2px);
 }
 
 .filter-section {
-  margin-bottom: 20px;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
 }
 
 .filter-section h4 {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  color: #555;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+  color: var(--ufsm-primary);
+  border-bottom: 2px solid var(--ufsm-accent);
+  padding-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
 }
 
 .filter-options {
   display: flex;
   flex-direction: column;
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
+}
+
+.filter-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-options::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.filter-options::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 3px;
+}
+
+.filter-options::-webkit-scrollbar-thumb:hover {
+  background: #95a5a6;
 }
 
 .filter-option {
   display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 0.6rem;
 }
 
 .filter-option input[type="checkbox"] {
-  margin-right: 10px;
+  margin-right: 0.75rem;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--ufsm-secondary);
 }
 
 .filter-option label {
   font-size: 0.9rem;
-  color: #666;
+  color: #555;
+  cursor: pointer;
+  font-weight: 500;
 }
 
 .filter-loading {
@@ -69,18 +108,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  color: #555;
+  padding: 1.5rem;
+  color: #666;
 }
 
 .spinner-sidebar {
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  width: 28px;
-  height: 28px;
+  border: 3px solid rgba(0, 51, 102, 0.1);
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border-left-color: #007bff;
+  border-top-color: var(--ufsm-primary);
+  border-right-color: var(--ufsm-secondary);
   animation: spin 1s ease infinite;
-  margin-bottom: 10px;
+  margin-bottom: 0.75rem;
 }
 
 @keyframes spin {

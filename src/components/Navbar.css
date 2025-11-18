@@ -4,18 +4,20 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background-color: var(--ufsm-blue);
+  background: linear-gradient(90deg, var(--ufsm-primary) 0%, var(--ufsm-blue) 100%);
   color: var(--ufsm-white);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   position: sticky;
   top: 0;
   z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .navbar-brand {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 1.6rem;
+  font-weight: 700;
   color: var(--ufsm-white);
+  letter-spacing: -0.5px;
 }
 
 .navbar-brand span {
@@ -25,16 +27,17 @@
 
 .navbar-links {
   display: flex;
-  gap: 1.5rem;
+  gap: 2rem;
 }
 
 .navbar-link {
   text-decoration: none;
   color: var(--ufsm-white);
-  font-weight: 500;
+  font-weight: 600;
   padding: 0.5rem 0;
   position: relative;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
 }
 
 .navbar-link::after {
@@ -42,7 +45,7 @@
   position: absolute;
   width: 100%;
   transform: scaleX(0);
-  height: 2px;
+  height: 3px;
   bottom: 0;
   left: 0;
   background-color: var(--ufsm-accent);
@@ -61,5 +64,5 @@
 
 .navbar-link.active {
   color: var(--ufsm-accent);
-  font-weight: bold;
+  font-weight: 700;
 }

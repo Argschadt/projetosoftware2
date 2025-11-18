@@ -20,6 +20,7 @@
   margin: 0 auto;
   padding: 0;
   text-align: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Logo styles */
@@ -32,11 +33,11 @@
 
 /* Logo hover effects */
 .logo:hover {
-  filter: drop-shadow(0 0 2em var(--ufsm-blue));
+  filter: drop-shadow(0 0 2em var(--ufsm-primary));
 }
 
 .logo.react:hover {
-  filter: drop-shadow(0 0 2em var(--ufsm-light-blue));
+  filter: drop-shadow(0 0 2em var(--ufsm-secondary));
 }
 
 /* Keyframes for logo spinning animation */
@@ -57,7 +58,12 @@
 }
 
 /* Card component padding */
-.card { padding: 1.25em; }
+.card { 
+  padding: 1.25em;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 
 /* Read the docs link color */
 .read-the-docs {

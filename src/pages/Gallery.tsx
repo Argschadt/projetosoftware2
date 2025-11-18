@@ -434,7 +434,7 @@ const Gallery: React.FC = () => {
                   onClick={() => setPage(pageNumber)}
                   disabled={loading}
                   className="page-button"
-                  style={isCurrent ? { fontWeight: '700', background: '#eee' } : undefined}
+                  style={isCurrent ? { fontWeight: '700', backgroundColor: '#ecf0f1', color: '#003366', borderColor: '#bdc3c7' } : undefined}
                 >
                   {pageNumber}
                 </button>
@@ -474,15 +474,14 @@ const Gallery: React.FC = () => {
           {/* Visual save button (executa saveSelection) */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
             <button
-              className="page-button"
-              style={{ background: '#28a745', marginRight: 8 }}
+              className="page-button success"
+              style={{ marginRight: 8 }}
               onClick={(e) => { e.preventDefault(); saveSelection(); }}
             >
               Salvar Seleção ({selectedItemsData.length})
             </button>
             <button
-              className="page-button"
-              style={{ background: selectedItemsData.length === 0 ? '#ccc' : '#dc3545' }}
+              className="page-button danger"
               onClick={(e) => {
                 e.preventDefault();
                 // Clear selection visually
@@ -559,7 +558,7 @@ const Gallery: React.FC = () => {
                   onClick={() => setPage(pageNumber)}
                   disabled={loading}
                   className="page-button"
-                  style={isCurrent ? { fontWeight: '700', background: '#eee' } : undefined}
+                  style={isCurrent ? { fontWeight: '700', backgroundColor: '#ecf0f1', color: '#003366', borderColor: '#bdc3c7' } : undefined}
                 >
                   {pageNumber}
                 </button>
