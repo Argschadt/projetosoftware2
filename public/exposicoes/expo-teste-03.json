@@ -1,0 +1,328 @@
+{
+    "schemaVersion": 3,
+    "appVersion": "0.1.0",
+    "sceneBaseId": "DefaultScene",
+    "name": "Snapshot 2025-11-24T19-28-24Z",
+    "createdAtIso": "2025-11-24T19:28:24.2180000Z",
+    "objects": [
+        {
+            "id": "0d4b6be220a448eabdb804b843ff2c64",
+            "prefabPath": "Wall",
+            "px": 30.687000274658204,
+            "py": -2.299999952316284,
+            "pz": 12.982000350952149,
+            "rx": 0.0,
+            "ry": 180.0,
+            "rz": 0.0,
+            "sx": 4.0,
+            "sy": 2.0,
+            "sz": 1.0,
+            "materialId": ""
+        },
+        {
+            "id": "08a3bdf862324cb189cdc1578564af0f",
+            "prefabPath": "Window",
+            "px": 41.77399826049805,
+            "py": -2.299999952316284,
+            "pz": 13.189000129699707,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 0.0,
+            "sx": 15.0,
+            "sy": 2.0,
+            "sz": 1.0,
+            "materialId": "cor_preto"
+        },
+        {
+            "id": "e4a84d6161ff47f1a25f59aa500f0cc4",
+            "prefabPath": "Wall",
+            "px": 49.31399917602539,
+            "py": -2.299999952316284,
+            "pz": 0.18700000643730164,
+            "rx": 0.0,
+            "ry": 90.0,
+            "rz": 0.0,
+            "sx": 13.0,
+            "sy": 2.0,
+            "sz": 1.0,
+            "materialId": ""
+        },
+        {
+            "id": "820c890f246b4f78b0b0eceb3f86742a",
+            "prefabPath": "Door",
+            "px": 22.959999084472658,
+            "py": -2.299999952316284,
+            "pz": 13.180999755859375,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 0.0,
+            "sx": 4.0,
+            "sy": 2.0,
+            "sz": 1.0,
+            "materialId": ""
+        },
+        {
+            "id": "455e766ec4c0403d9b15ccf8d8fb4b19",
+            "prefabPath": "Wall",
+            "px": 19.00200080871582,
+            "py": -2.299999952316284,
+            "pz": 0.2770000100135803,
+            "rx": 0.0,
+            "ry": 90.0,
+            "rz": 0.0,
+            "sx": 13.0,
+            "sy": 2.0,
+            "sz": 1.0,
+            "materialId": ""
+        },
+        {
+            "id": "af1a601981424f2997fa52fefa3898ab",
+            "prefabPath": "Floor",
+            "px": 34.21200180053711,
+            "py": -2.2049999237060549,
+            "pz": -0.41499999165534975,
+            "rx": 0.0,
+            "ry": 180.0,
+            "rz": 0.0,
+            "sx": 7.531000137329102,
+            "sy": 1.0,
+            "sz": 6.795000076293945,
+            "materialId": ""
+        },
+        {
+            "id": "9dc7408d2a8d4f15b9360d7f3dbb30ff",
+            "prefabPath": "Cube",
+            "px": 34.034000396728519,
+            "py": -1.1640000343322755,
+            "pz": -12.739999771118164,
+            "rx": 0.0,
+            "ry": 268.5379943847656,
+            "rz": 0.0,
+            "sx": 2.0,
+            "sy": 10.0,
+            "sz": 30.0,
+            "materialId": "cor_preto"
+        },
+        {
+            "id": "400834313c384333a7a8faddaa9a3801",
+            "prefabPath": "Obra",
+            "px": 46.81700134277344,
+            "py": 0.20100000500679017,
+            "pz": -11.248000144958496,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "976e1cf3ddaf4f5aa8d5530d792f4b93",
+            "prefabPath": "Obra",
+            "px": 43.000999450683597,
+            "py": 0.22300000488758088,
+            "pz": -11.378000259399414,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "6420b7cb7f724f42b9f9456c829bc51e",
+            "prefabPath": "Obra",
+            "px": 39.237998962402347,
+            "py": 0.12600000202655793,
+            "pz": -11.51099967956543,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "1aa044218bc742eda78c2f9f5366c429",
+            "prefabPath": "Obra",
+            "px": 35.28900146484375,
+            "py": 0.05999999865889549,
+            "pz": -11.494000434875489,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "446ff3ad76fc4048aefd1a9d6cda90f6",
+            "prefabPath": "Obra",
+            "px": 31.509000778198243,
+            "py": 0.0,
+            "pz": -11.717000007629395,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "341677ebf123474cb12932534abc7ddc",
+            "prefabPath": "Obra",
+            "px": 22.56999969482422,
+            "py": 0.6819999814033508,
+            "pz": -11.833999633789063,
+            "rx": 90.0,
+            "ry": 0.0,
+            "rz": 0.0,
+            "sx": 0.5,
+            "sy": 1.0,
+            "sz": 0.5,
+            "materialId": ""
+        },
+        {
+            "id": "dfa1a3e1a19e430699ced8bc1f939dfa",
+            "prefabPath": "Obra",
+            "px": 27.832000732421876,
+            "py": 0.0,
+            "pz": -11.765000343322754,
+            "rx": 0.0,
+            "ry": 270.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "cfd4657c3b7f4323a4ddd01740f693a5",
+            "prefabPath": "Obra",
+            "px": 19.356000900268556,
+            "py": 0.16099999845027924,
+            "pz": 4.933000087738037,
+            "rx": 90.0,
+            "ry": 90.0,
+            "rz": 0.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "4dcf922dd5da48ab82ef1f01bf56a88f",
+            "prefabPath": "Obra",
+            "px": 18.709999084472658,
+            "py": 0.0,
+            "pz": 6.921000003814697,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "6cd8a81857b24c5fafe933ce0e6037e8",
+            "prefabPath": "Obra",
+            "px": 19.107999801635743,
+            "py": 0.3400000035762787,
+            "pz": 0.13600000739097596,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "ccfc6c3d01a24825b2a9dc2e5c2aed11",
+            "prefabPath": "Obra",
+            "px": 19.131000518798829,
+            "py": 0.2280000001192093,
+            "pz": -4.646999835968018,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 270.0,
+            "sx": 0.30000001192092898,
+            "sy": 1.0,
+            "sz": 0.30000001192092898,
+            "materialId": ""
+        },
+        {
+            "id": "2671483003ce4ecfa2855601a98016be",
+            "prefabPath": "Cube",
+            "px": 0.0,
+            "py": -2.6459999084472658,
+            "pz": -1.2890000343322755,
+            "rx": 0.0,
+            "ry": 0.0,
+            "rz": 0.0,
+            "sx": 150.0,
+            "sy": 1.0,
+            "sz": 150.0,
+            "materialId": "grass"
+        }
+    ],
+    "artworks": [
+        {
+            "objectId": "400834313c384333a7a8faddaa9a3801",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/07/1998-A-ARVORE-DA-VIDA-275x275.png"
+        },
+        {
+            "objectId": "976e1cf3ddaf4f5aa8d5530d792f4b93",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/Painel-14b-CE1-477x1024-1-275x275.jpg"
+        },
+        {
+            "objectId": "6420b7cb7f724f42b9f9456c829bc51e",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/07/COLORBLOCKS1-275x275.png"
+        },
+        {
+            "objectId": "1aa044218bc742eda78c2f9f5366c429",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/esculturas.png"
+        },
+        {
+            "objectId": "446ff3ad76fc4048aefd1a9d6cda90f6",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/Painel-13a-–-Mural-RU-1024x734-1-275x275.png"
+        },
+        {
+            "objectId": "341677ebf123474cb12932534abc7ddc",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/07/UFSM.2018.020.021.PRE_141-275x275.jpg"
+        },
+        {
+            "objectId": "dfa1a3e1a19e430699ced8bc1f939dfa",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/07/TEMPOS-TEMEROSOS-275x275.jpg"
+        },
+        {
+            "objectId": "cfd4657c3b7f4323a4ddd01740f693a5",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/UFSM.2021.001.003.PRE_141-275x167.jpg"
+        },
+        {
+            "objectId": "4dcf922dd5da48ab82ef1f01bf56a88f",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/Painel-14a-–-Mural-CE-1024x972-1-275x275.png"
+        },
+        {
+            "objectId": "6cd8a81857b24c5fafe933ce0e6037e8",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/Painel-13b-Mural-RU2-1024x303-1-275x275.jpg"
+        },
+        {
+            "objectId": "ccfc6c3d01a24825b2a9dc2e5c2aed11",
+            "imageUrl": "https://tainacan.ufsm.br/acervo-artistico/wp-content/uploads/sites/5/2024/08/UFSM.2021.001.006.PRE_141-1-275x122.jpg"
+        }
+    ],
+    "skyboxMaterialName": "Espaço",
+    "skyboxPreset": {
+        "type": "",
+        "materialName": "",
+        "rotation": 0.0,
+        "exposureCompensation": 0.0
+    }
+}

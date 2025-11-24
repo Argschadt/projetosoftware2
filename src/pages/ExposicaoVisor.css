@@ -1,3 +1,9 @@
+.unity-frame {
+    width: 1000px;
+    height: 900px;
+}
+
+
 .exposicao-visor-container {
   min-height: calc(100vh - 80px);
   background: var(--ufsm-white);

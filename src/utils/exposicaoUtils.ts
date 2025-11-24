@@ -1,113 +1,123 @@
+// utils/exposicaoUtils.ts
 import type { Exposicao, ExposicaoMetadata, ExposicaoSceneData } from '../types/exposicao';
 
-const EXPOSICOES_API = 'http://localhost:3000/api/exposicoes';
-const EXPOSICOES_PATH = '/exposicoes';
+const LS_KEY = "exposicoes_local";
 
-/**
- * Carrega a lista de exposições disponíveis
- */
+// ------------------------------------------------------------
+// Helpers de LocalStorage
+// ------------------------------------------------------------
+function loadLocal(): Exposicao[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function saveLocal(lista: Exposicao[]) {
+  localStorage.setItem(LS_KEY, JSON.stringify(lista));
+}
+
+// ------------------------------------------------------------
+// 1. CARREGAR LISTA (estáticos + localStorage)
+// ------------------------------------------------------------
 export async function carregarExposicoes(): Promise<Exposicao[]> {
+  const locais = loadLocal();
+
+  // carregar lista estática em /public/exposicoes/index.json
   try {
-  const response = await fetch(`${EXPOSICOES_API}?action=list`);
-    if (!response.ok) {
-      throw new Error('Falha ao carregar exposições');
+    const resp = await fetch("/exposicoes/index.json");
+    if (resp.ok) {
+      const estaticas = await resp.json();
+      return [...estaticas, ...locais];
     }
-    const json = await response.json();
-    // API should return an array of exposicoes
-    if (Array.isArray(json)) {
-      return json as Exposicao[];
-    }
-    // In some setups the API returns an object with metadata list
-    if (json && json.items && Array.isArray(json.items)) return json.items as Exposicao[];
-    return [];
-  } catch (error) {
-    console.error('Erro ao carregar exposições:', error);
-    return [];
-  }
+  } catch {}
+
+  // fallback — só localStorage
+  return locais;
 }
 
-/**
- * Carrega uma exposição específica com seus dados
- */
+// ------------------------------------------------------------
+// 2. CARREGAR UMA EXPOSIÇÃO COMPLETA
+// ------------------------------------------------------------
 export async function carregarExposicao(id: string): Promise<ExposicaoMetadata | null> {
-  try {
-  const response = await fetch(`${EXPOSICOES_API}?id=${id}`);
-    if (!response.ok) {
-      throw new Error('Falha ao carregar exposição');
-    }
-    const json = await response.json();
-    if (json && json.metadata && json.data) {
-      return { ...json.metadata, data: json.data } as ExposicaoMetadata;
-    }
-    return json as ExposicaoMetadata;
-  } catch (error) {
-    console.error('Erro ao carregar exposição:', error);
-    return null;
-  }
-}
+  const locais = loadLocal();
+  const local = locais.find(x => x.id === id);
 
-/**
- * Carrega o arquivo JSON da exposição diretamente
- */
-export async function carregarDadosExposicao(fileName: string): Promise<ExposicaoSceneData | null> {
-  try {
-    const response = await fetch(`${EXPOSICOES_PATH}/${fileName}`);
-    if (!response.ok) {
-      throw new Error('Falha ao carregar dados da exposição');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Erro ao carregar dados da exposição:', error);
-    return null;
-  }
-}
+  // --- Caso venha do localStorage ---
+  if (local) {
+    const raw = localStorage.getItem(`expo_json_${local.fileName}`);
+    if (!raw) return null;
 
-/**
- * Salva uma nova exposição (apenas admin)
- */
-export async function salvarExposicao(exposicao: Exposicao, arquivo: File): Promise<boolean> {
-  try {
-    // Ler o conteúdo do arquivo (JSON)
-    const fileText = await arquivo.text();
-
-    const body = {
-      metadata: exposicao,
-      data: fileText,
+    return {
+      ...local,
+      data: JSON.parse(raw) as ExposicaoSceneData,
     };
+  }
 
-    const response = await fetch(EXPOSICOES_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+  // --- Caso venha dos arquivos estáticos ---
+  try {
+    // Carregar index.json para obter o fileName
+    const listaResp = await fetch("/exposicoes/index.json");
+    if (!listaResp.ok) return null;
 
-    if (!response.ok) {
-      throw new Error('Falha ao salvar exposição');
-    }
+    const estaticas: Exposicao[] = await listaResp.json();
+    const meta = estaticas.find(x => x.id === id);
+    if (!meta) return null;
+
+    // Agora sim carregar o JSON correto pelo fileName
+    const resp = await fetch(`/exposicoes/${meta.fileName}`);
+    if (!resp.ok) return null;
+
+    const cena = await resp.json();
+
+    return {
+      ...meta,   // metadados
+      data: cena // JSON do mapa sem wrapper
+    };
+  } catch (e) {
+    console.error("Erro ao carregar exposição estática:", e);
+    return null;
+  }
+}
+
+// ------------------------------------------------------------
+// 3. SALVAR EXPOSIÇÃO DO ADMIN (somente localStorage)
+// ------------------------------------------------------------
+export async function salvarExposicao(expo: Exposicao, arquivo: File): Promise<boolean> {
+  try {
+    const text = await arquivo.text();
+    const cena = JSON.parse(text);
+
+    // salvar metadados
+    const lista = loadLocal();
+    lista.push(expo);
+    saveLocal(lista);
+
+    // salvar JSON da cena
+    localStorage.setItem(`expo_json_${expo.fileName}`, JSON.stringify(cena));
 
     return true;
-  } catch (error) {
-    console.error('Erro ao salvar exposição:', error);
+  } catch (e) {
+    console.error("Erro ao salvar exposição:", e);
     return false;
   }
 }
 
-/**
- * Deleta uma exposição (apenas admin)
- */
+// ------------------------------------------------------------
+// 4. DELETAR
+// ------------------------------------------------------------
 export async function deletarExposicao(id: string): Promise<boolean> {
-  try {
-    const response = await fetch(`${EXPOSICOES_API}?id=${id}`, {
-      method: 'DELETE',
-    });
+  const lista = loadLocal();
+  const expo = lista.find(x => x.id === id);
+  if (!expo) return false;
 
-    if (!response.ok) {
-      throw new Error('Falha ao deletar exposição');
-    }
+  localStorage.removeItem(`expo_json_${expo.fileName}`);
 
-    return true;
-  } catch (error) {
-    console.error('Erro ao deletar exposição:', error);
-    return false;
-  }
+  const nova = lista.filter(x => x.id !== id);
+  saveLocal(nova);
+
+  return true;
 }

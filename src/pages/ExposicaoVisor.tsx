@@ -10,6 +10,7 @@ export default function ExposicaoVisor() {
   const [exposicao, setExposicao] = useState<ExposicaoMetadata | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [scenarioUrl, setScenarioUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const carregar = async () => {
@@ -19,14 +20,32 @@ export default function ExposicaoVisor() {
         return;
       }
 
-      setLoading(true);
       const dados = await carregarExposicao(id);
-      
+
       if (!dados) {
         setErro("Não foi possível carregar a exposição");
-      } else {
-        setExposicao(dados);
+        setLoading(false);
+        return;
       }
+
+      setExposicao(dados);
+
+      // verifica se existe JSON no localStorage
+      const saved = localStorage.getItem(`expo_json_${dados.fileName}`);
+
+      if (saved) {
+        const blob = new Blob([saved], { type: "application/json" });
+        const blobUrl = URL.createObjectURL(blob);
+
+        console.log("[ExposicaoVisor] Usando blob local:", blobUrl);
+        setScenarioUrl(blobUrl);
+      } else {
+        // usa arquivo estático
+        const staticUrl = `/exposicoes/${dados.fileName}`;
+        console.log("[ExposicaoVisor] Usando arquivo estático:", staticUrl);
+        setScenarioUrl(staticUrl);
+      }
+
       setLoading(false);
     };
 
@@ -36,10 +55,7 @@ export default function ExposicaoVisor() {
   if (loading) {
     return (
       <div className="exposicao-visor-container">
-        <div className="loading-state">
-          <div className="spinner"></div>
-          <p>Carregando exposição...</p>
-        </div>
+        <p>Carregando...</p>
       </div>
     );
   }
@@ -47,13 +63,9 @@ export default function ExposicaoVisor() {
   if (erro || !exposicao) {
     return (
       <div className="exposicao-visor-container">
-        <div className="error-state">
-          <h2>Erro</h2>
-          <p>{erro || "Exposição não encontrada"}</p>
-          <button onClick={() => navigate("/exposicoes")} className="back-button">
-            Voltar para Exposições
-          </button>
-        </div>
+        <h2>Erro</h2>
+        <p>{erro}</p>
+        <button onClick={() => navigate("/exposicoes")}>Voltar</button>
       </div>
     );
   }
@@ -72,13 +84,16 @@ export default function ExposicaoVisor() {
       </div>
 
       <div className="exposicao-visor-viewer">
-        {/* Aqui você pode integrar com o componente Unity para exibir a cena */}
-        <div className="viewer-placeholder">
-          <p>Visualizador 3D da exposição será carregado aqui</p>
-          <p style={{ fontSize: "12px", color: "#999" }}>
-            Arquivo: {exposicao.fileName}
-          </p>
-        </div>
+        {scenarioUrl ? (
+          <iframe
+            src={`/CenarioPlayer/index.html?scenarioUrl=${encodeURIComponent(scenarioUrl)}`}
+            className="unity-frame"
+            allow="fullscreen"
+          />
+        ) : (
+          <p>Não foi possível determinar o JSON do cenário.</p>
+        )}
+
       </div>
     </div>
   );

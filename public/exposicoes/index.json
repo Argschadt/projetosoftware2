@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "expo-teste-01",
+    "name": "Exposição dos modelos 3D",
+    "description": "ilustração dos modelos de construção",
+    "fileName": "expo-teste-01.json",
+    "createdAt": "2025-11-25T12:00:00Z",
+    "author": "Admin",
+    "status": "published"
+  },
+  {
+    "id": "expo-teste-02",
+    "name": "Obras na areia",
+    "description": "Exposição contendo várias obras na areia",
+    "fileName": "expo-teste-02.json",
+    "createdAt": "2025-11-25T12:15:00Z",
+    "author": "Admin",
+    "status": "published"
+  },
+  {
+    "id": "expo-teste-03",
+    "name": "Exposição de obras",
+    "description": "Exposição com diversas esculturas famosas",
+    "fileName": "expo-teste-03.json",
+    "createdAt": "2025-11-25T12:30:00Z",
+    "author": "Admin",
+    "status": "published"
+  }
+]
