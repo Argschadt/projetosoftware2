@@ -37,11 +37,11 @@ export default function UnityBuild({
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
 
-    const loaderUrl = `${buildPath}/CenarioPlayer.loader.js`;
+    const loaderUrl = `${buildPath}/mapaPadraoBuild.loader.js`;
     const config = {
-      dataUrl: `${buildPath}/CenarioPlayer.data`,
-      frameworkUrl: `${buildPath}/CenarioPlayer.framework.js`,
-      codeUrl: `${buildPath}/CenarioPlayer.wasm`,
+      dataUrl: `${buildPath}/mapaPadraoBuild.data`,
+      frameworkUrl: `${buildPath}/mapaPadraoBuild.framework.js`,
+      codeUrl: `${buildPath}/mapaPadraoBuild.wasm`,
       streamingAssetsUrl: "StreamingAssets",
       companyName: "MyCompany",
       productName: "MyUnityApp",
