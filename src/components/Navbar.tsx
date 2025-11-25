@@ -36,44 +36,46 @@ export default function Navbar() {
         "https://projetosoftware2-ufsm.vercel.app"
       );
 
-      window.location.href = "https://projetosoftware2-ufsm.vercel.app/";
+      // ❌ NÃO REDIRECIONA AQUI!
+      // O BRIDGE é quem vai redirecionar depois de salvar.
     });
+
 
   };
 
-return (
-  <nav className="navbar">
-    <div className="navbar-brand">
-      <span>Acervo 3D</span>
-    </div>
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">
+        <span>Acervo 3D</span>
+      </div>
 
-    <div className="navbar-links">
-      <NavLink to="/" className={({ isActive }) =>
-        isActive ? "navbar-link active" : "navbar-link"
-      } end>
-        Início
-      </NavLink>
+      <div className="navbar-links">
+        <NavLink to="/" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        } end>
+          Início
+        </NavLink>
 
-      <NavLink to="/galeria" className={({ isActive }) =>
-        isActive ? "navbar-link active" : "navbar-link"
-      }>
-        Galeria
-      </NavLink>
+        <NavLink to="/galeria" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        }>
+          Galeria
+        </NavLink>
 
-      <NavLink to="/exposicoes" className={({ isActive }) =>
-        isActive ? "navbar-link active" : "navbar-link"
-      }>
-        Exposições
-      </NavLink>
+        <NavLink to="/exposicoes" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        }>
+          Exposições
+        </NavLink>
 
-      <button
-        type="button"
-        className="navbar-link"
-        onClick={handleVisualizacao3D}
-      >
-        Visualização 3D
-      </button>
-    </div>
-  </nav>
-);
+        <button
+          type="button"
+          className="navbar-link"
+          onClick={handleVisualizacao3D}
+        >
+          Visualização 3D
+        </button>
+      </div>
+    </nav>
+  );
 }
