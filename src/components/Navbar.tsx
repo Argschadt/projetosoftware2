@@ -22,7 +22,7 @@ export default function Navbar() {
     iframe.style.opacity = "0";
     iframe.style.pointerEvents = "none";
 
-    iframe.src = "https://projetosoftware2-ufsm.vercel.app/bridge.html";
+    iframe.src = "https://projetosoftware2-ufsm.vercel.app/mapaPadraoBuild/bridge.html";
     document.body.appendChild(iframe);
 
     iframe.addEventListener("load", () => {
