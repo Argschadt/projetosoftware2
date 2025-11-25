@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity Web Player | AcervoUFSM</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="stylesheet" href="CenarioPlayer/TemplateData/style.css">
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -51,14 +51,14 @@
         updateBannerVisibility();
       }
 
-      var buildUrl = "Build";
+      var buildUrl = "CenarioPlayer/Build";
       var loaderUrl = buildUrl + "/CenarioPlayer.loader.js";
       var config = {
         arguments: [],
         dataUrl: buildUrl + "/CenarioPlayer.data",
         frameworkUrl: buildUrl + "/CenarioPlayer.framework.js",
         codeUrl: buildUrl + "/CenarioPlayer.wasm",
-        streamingAssetsUrl: "StreamingAssets",
+        streamingAssetsUrl: "CenarioPlayer/StreamingAssets",
         companyName: "DefaultCompany",
         productName: "AcervoUFSM",
         productVersion: "0.1.0",
