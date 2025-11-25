@@ -14,11 +14,18 @@ export default function Navbar() {
     }
 
     const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
+
+    // Não usar display:none (browser ignora)
+    iframe.style.position = "absolute";
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.opacity = "0";
+    iframe.style.pointerEvents = "none";
+
     iframe.src = "https://projetosoftware2-ufsm.vercel.app/bridge.html";
     document.body.appendChild(iframe);
 
-    iframe.onload = () => {
+    iframe.addEventListener("load", () => {
       if (!iframe.contentWindow) return;
 
       iframe.contentWindow.postMessage(
@@ -30,43 +37,43 @@ export default function Navbar() {
       );
 
       window.location.href = "https://projetosoftware2-ufsm.vercel.app/";
+    });
 
-    };
   };
 
-  return (
-    <nav className="navbar">
-      <div className="navbar-brand">
-        <span>Acervo 3D</span>
-      </div>
+return (
+  <nav className="navbar">
+    <div className="navbar-brand">
+      <span>Acervo 3D</span>
+    </div>
 
-      <div className="navbar-links">
-        <NavLink to="/" className={({ isActive }) =>
-          isActive ? "navbar-link active" : "navbar-link"
-        } end>
-          Início
-        </NavLink>
+    <div className="navbar-links">
+      <NavLink to="/" className={({ isActive }) =>
+        isActive ? "navbar-link active" : "navbar-link"
+      } end>
+        Início
+      </NavLink>
 
-        <NavLink to="/galeria" className={({ isActive }) =>
-          isActive ? "navbar-link active" : "navbar-link"
-        }>
-          Galeria
-        </NavLink>
+      <NavLink to="/galeria" className={({ isActive }) =>
+        isActive ? "navbar-link active" : "navbar-link"
+      }>
+        Galeria
+      </NavLink>
 
-        <NavLink to="/exposicoes" className={({ isActive }) =>
-          isActive ? "navbar-link active" : "navbar-link"
-        }>
-          Exposições
-        </NavLink>
+      <NavLink to="/exposicoes" className={({ isActive }) =>
+        isActive ? "navbar-link active" : "navbar-link"
+      }>
+        Exposições
+      </NavLink>
 
-        <button
-          type="button"
-          className="navbar-link"
-          onClick={handleVisualizacao3D}
-        >
-          Visualização 3D
-        </button>
-      </div>
-    </nav>
-  );
+      <button
+        type="button"
+        className="navbar-link"
+        onClick={handleVisualizacao3D}
+      >
+        Visualização 3D
+      </button>
+    </div>
+  </nav>
+);
 }
