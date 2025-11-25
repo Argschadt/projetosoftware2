@@ -29,7 +29,8 @@ export default function Navbar() {
         "https://projetosoftware2-ufsm.vercel.app"
       );
 
-      window.open("https://projetosoftware2-ufsm.vercel.app/", "_blank");
+      window.location.href = "https://projetosoftware2-ufsm.vercel.app/";
+
     };
   };
 
