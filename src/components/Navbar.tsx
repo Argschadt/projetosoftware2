@@ -1,11 +1,12 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import "./Navbar.css";
 
 export default function Navbar() {
-  const navigate = useNavigate();
 
   const handleVisualizacao3D = () => {
-    const selected = localStorage.getItem("selectedArtworks");
+    if (typeof window === "undefined") return;
+
+    const selected = window.localStorage.getItem("selectedArtworks");
 
     if (!selected) {
       alert("Nenhuma obra selecionada.");
@@ -18,10 +19,7 @@ export default function Navbar() {
     document.body.appendChild(iframe);
 
     iframe.onload = () => {
-      if (!iframe.contentWindow) {
-        console.error("Iframe sem contentWindow!");
-        return;
-      }
+      if (!iframe.contentWindow) return;
 
       iframe.contentWindow.postMessage(
         {
@@ -31,7 +29,6 @@ export default function Navbar() {
         "https://projetosoftware2-ufsm.vercel.app"
       );
 
-      // ABRIR EM UMA NOVA GUIA
       window.open("https://projetosoftware2-ufsm.vercel.app/", "_blank");
     };
   };
@@ -41,31 +38,31 @@ export default function Navbar() {
       <div className="navbar-brand">
         <span>Acervo 3D</span>
       </div>
+
       <div className="navbar-links">
-        <NavLink
-          to="/"
-          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
-          end
-        >
+        <NavLink to="/" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        } end>
           Início
         </NavLink>
 
-        <NavLink
-          to="/galeria"
-          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
-        >
+        <NavLink to="/galeria" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        }>
           Galeria
         </NavLink>
 
-        <NavLink
-          to="/exposicoes"
-          className={({ isActive }) => isActive ? "navbar-link active" : "navbar-link"}
-        >
+        <NavLink to="/exposicoes" className={({ isActive }) =>
+          isActive ? "navbar-link active" : "navbar-link"
+        }>
           Exposições
         </NavLink>
 
-        {/* ALTERADO: Agora é um botão, não uma rota */}
-        <button className="navbar-link" onClick={handleVisualizacao3D}>
+        <button
+          type="button"
+          className="navbar-link"
+          onClick={handleVisualizacao3D}
+        >
           Visualização 3D
         </button>
       </div>
