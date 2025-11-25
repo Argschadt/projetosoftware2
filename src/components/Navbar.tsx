@@ -4,44 +4,42 @@ import "./Navbar.css";
 export default function Navbar() {
 
   const handleVisualizacao3D = () => {
-    if (typeof window === "undefined") return;
-
-    const selected = window.localStorage.getItem("selectedArtworks");
+    const selected = localStorage.getItem("selectedArtworks");
 
     if (!selected) {
       alert("Nenhuma obra selecionada.");
       return;
     }
 
-    const iframe = document.createElement("iframe");
+    // Abre o bridge numa nova aba
+    const popup = window.open(
+      "https://projetosoftware2-ufsm.vercel.app/mapaPadraoBuild/bridge.html",
+      "_blank"
+    );
 
-    // Não usar display:none (browser ignora)
-    iframe.style.position = "absolute";
-    iframe.style.width = "1px";
-    iframe.style.height = "1px";
-    iframe.style.opacity = "0";
-    iframe.style.pointerEvents = "none";
+    if (!popup) {
+      alert("Permita popups para continuar!");
+      return;
+    }
 
-    iframe.src = "https://projetosoftware2-ufsm.vercel.app/mapaPadraoBuild/bridge.html";
-    document.body.appendChild(iframe);
+    // Quando a aba carregar, enviamos os dados
+    const interval = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(interval);
+        return;
+      }
 
-    iframe.addEventListener("load", () => {
-      if (!iframe.contentWindow) return;
-
-      iframe.contentWindow.postMessage(
+      popup.postMessage(
         {
           type: "SET_SELECTED_ARTWORKS",
-          payload: selected,
+          payload: selected
         },
         "https://projetosoftware2-ufsm.vercel.app"
       );
 
-      // ❌ NÃO REDIRECIONA AQUI!
-      // O BRIDGE é quem vai redirecionar depois de salvar.
-    });
-
-
+    }, 300);
   };
+
 
   return (
     <nav className="navbar">
