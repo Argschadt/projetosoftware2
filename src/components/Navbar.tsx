@@ -15,7 +15,7 @@ export default function Navbar() {
 
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
-    iframe.src = "https://projetosoftware2-ufsm.vercel.app/bridge";
+    iframe.src = "https://projetosoftware2-ufsm.vercel.app/bridge.html";
     document.body.appendChild(iframe);
 
     iframe.onload = () => {
